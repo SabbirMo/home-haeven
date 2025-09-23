@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:home_haven/core/router/app_routers.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:home_haven/core/util/export.dart';
 
 class LoginController extends GetxController {
   bool hidenPassword = true;
@@ -11,12 +12,12 @@ class LoginController extends GetxController {
     update();
   }
 
-  // ... existing code ...
-
   bool isLoading = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   User? user;
+
+  String adminEmail = "sabbirsamolla51@gmail.com";
 
   Future<void> loginUser({
     required String email,
@@ -45,21 +46,26 @@ class LoginController extends GetxController {
                   doc.data() as Map<String, dynamic>;
               String role = userData['role'] ?? 'customer';
 
+              if (role == "admin" && email.trim().toLowerCase() != adminEmail) {
+                Get.snackbar("Error", "Only $adminEmail can login as Admin!");
+                await _auth.signOut();
+                return;
+              }
+
               Get.snackbar('Success', 'Login Successfully as $role');
 
               if (role == "admin") {
                 Get.offAllNamed(RouterConstant.adminDashboard);
               } else {
-                Get.offAllNamed(RouterConstant.homeScreen);
+                Get.offAllNamed(RouterConstant.mainScreen);
               }
             } else {
               Get.snackbar('Success', 'Login Successfully');
-              Get.offAllNamed(RouterConstant.homeScreen);
+              Get.offAllNamed(RouterConstant.mainScreen);
             }
           } catch (firestoreError) {
-            print('Firestore error: $firestoreError');
             Get.snackbar('Success', 'Login Successfully');
-            Get.offAllNamed(RouterConstant.homeScreen);
+            Get.offAllNamed(RouterConstant.mainScreen);
           }
         } else {
           Get.snackbar('Error', 'Please verify your email');
@@ -83,7 +89,6 @@ class LoginController extends GetxController {
       }
       Get.snackbar('Error', errorMessage);
     } catch (e) {
-      print('Unexpected error: $e');
       Get.snackbar('Error', 'An unexpected error occurred');
     } finally {
       isLoading = false;
@@ -152,7 +157,7 @@ class LoginController extends GetxController {
         if (role == 'admin') {
           Get.offAllNamed(RouterConstant.adminDashboard);
         } else {
-          Get.offAllNamed(RouterConstant.homeScreen);
+          Get.offAllNamed(RouterConstant.mainScreen);
         }
       }
     } catch (e) {

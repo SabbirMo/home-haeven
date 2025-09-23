@@ -6,6 +6,9 @@ import 'package:home_haven/features/auth/login/screen/login_screen.dart';
 import 'package:home_haven/features/auth/registration/binding/registor_binding.dart';
 import 'package:home_haven/features/auth/registration/screen/register_screen.dart';
 import 'package:home_haven/features/home/presentation/screen/home_screen.dart';
+import 'package:home_haven/features/home/presentation/binding/home_binding.dart';
+import 'package:home_haven/features/product_details/screen/product_details_screen.dart';
+import 'package:home_haven/features/bottom_navbar/screen/custom_bottom_navbar.dart';
 import 'package:home_haven/features/onboarding/binding/onboarding_binding.dart';
 import 'package:home_haven/features/onboarding/view/onboarding_screen.dart';
 import 'package:home_haven/features/splash/splash_screen.dart';
@@ -35,15 +38,21 @@ class AppRouters {
     GetPage(
       name: RouterConstant.homeScreen,
       page: () => HomeScreen(),
-      //binding: HomeBinding(),
+      binding: HomeBinding(),
     ),
-    // GetPage(
-    //   name: RouterConstant.mainScreen,
-    //   page: () => CustomBottomNavbarScreen(),
-    // ),
+    GetPage(
+      name: RouterConstant.mainScreen,
+      page: () => CustomBottomNavbar(),
+    ),
     GetPage(
       name: RouterConstant.adminDashboard,
       page: () => AdminDashboard(),
+    ),
+    GetPage(
+      name: RouterConstant.productDetails,
+      page: () => ProductDetailsScreen(
+        product: Get.arguments,
+      ),
     ),
   ];
 }
@@ -57,4 +66,5 @@ class RouterConstant {
   static final homeScreen = '/homeScreen';
   static final mainScreen = '/mainScreen';
   static final adminDashboard = '/adminDashboard';
+  static final productDetails = '/productDetails';
 }
