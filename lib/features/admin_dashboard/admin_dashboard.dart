@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:home_haven/core/assets/app_colors.dart';
 import 'package:home_haven/features/home/model/home_model.dart';
 import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'admin_product_controller.dart';
+import 'package:home_haven/features/orders/screen/orders_management_screen.dart';
+import 'package:home_haven/features/orders/controller/orders_controller.dart';
+import 'package:home_haven/features/orders/model/order_model.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
@@ -25,6 +29,9 @@ class AdminDashboard extends StatelessWidget {
         backgroundColor: AppColors.primary,
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.white),
+        actions: [
+          _buildUserProfileMenu(),
+        ],
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
@@ -37,6 +44,10 @@ class AdminDashboard extends StatelessWidget {
 
             // Quick Actions
             _buildQuickActions(controller),
+            SizedBox(height: 24),
+
+            // Orders Management Section
+            _buildOrdersManagementSection(),
             SizedBox(height: 24),
 
             // Recent Products
@@ -56,6 +67,496 @@ class AdminDashboard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildOrdersManagementSection() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Orders Management',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    Get.to(() => OrdersManagementScreen());
+                  },
+                  icon: Icon(Icons.arrow_forward, size: 16),
+                  label: Text('View All'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            
+            // Orders Stats
+            GetBuilder<OrdersController>(
+              init: OrdersController(),
+              builder: (ordersController) {
+                return Row(
+                  children: [
+                    Expanded(
+                      child: _buildOrderStatCard(
+                        'Total Orders',
+                        ordersController.totalOrders.toString(),
+                        Icons.shopping_bag,
+                        Colors.blue,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: _buildOrderStatCard(
+                        'Pending',
+                        ordersController.pendingOrders.toString(),
+                        Icons.pending,
+                        Colors.orange,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: _buildOrderStatCard(
+                        'Approved',
+                        ordersController.approvedOrders.toString(),
+                        Icons.check_circle,
+                        Colors.green,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+            SizedBox(height: 16),
+            
+            // Quick Actions for Orders
+            Row(
+              children: [
+                Expanded(
+                  child: _buildActionButton(
+                    'Manage Orders',
+                    Icons.manage_search,
+                    Colors.purple,
+                    () => Get.to(() => OrdersManagementScreen()),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: _buildActionButton(
+                    'View Pending',
+                    Icons.pending_actions,
+                    Colors.orange,
+                    () {
+                      Get.to(() => OrdersManagementScreen());
+                      // Auto-filter to pending orders after navigation
+                      Future.delayed(Duration(milliseconds: 100), () {
+                        try {
+                          Get.find<OrdersController>().filterByStatus(OrderStatus.pending);
+                        } catch (e) {
+                          // Controller not found, ignore
+                        }
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrderStatCard(String title, String value, IconData icon, Color color) {
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.grey[600],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserProfileMenu() {
+    final user = FirebaseAuth.instance.currentUser;
+    
+    return Padding(
+      padding: EdgeInsets.only(right: 16),
+      child: PopupMenuButton<String>(
+        offset: Offset(0, 50),
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: CircleAvatar(
+            radius: 20,
+            backgroundColor: Colors.white,
+            backgroundImage: user?.photoURL != null 
+                ? NetworkImage(user!.photoURL!) 
+                : null,
+            child: user?.photoURL == null
+                ? Icon(
+                    Icons.person,
+                    color: AppColors.primary,
+                    size: 22,
+                  )
+                : null,
+          ),
+        ),
+        itemBuilder: (BuildContext context) => [
+          PopupMenuItem<String>(
+            value: 'profile',
+            child: Row(
+              children: [
+                Icon(Icons.person_outline, color: Colors.grey[700], size: 20),
+                SizedBox(width: 12),
+                Text('View Profile'),
+              ],
+            ),
+          ),
+          PopupMenuItem<String>(
+            value: 'settings',
+            child: Row(
+              children: [
+                Icon(Icons.settings_outlined, color: Colors.grey[700], size: 20),
+                SizedBox(width: 12),
+                Text('Settings'),
+              ],
+            ),
+          ),
+          PopupMenuDivider(),
+          PopupMenuItem<String>(
+            value: 'logout',
+            child: Row(
+              children: [
+                Icon(Icons.logout, color: Colors.red, size: 20),
+                SizedBox(width: 12),
+                Text(
+                  'Log Out',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ],
+            ),
+          ),
+        ],
+        onSelected: (String value) {
+          _handleUserMenuAction(value);
+        },
+      ),
+    );
+  }
+
+  void _handleUserMenuAction(String action) {
+    switch (action) {
+      case 'profile':
+        _showUserProfileDialog();
+        break;
+      case 'settings':
+        _showSettingsDialog();
+        break;
+      case 'logout':
+        _showLogoutConfirmation();
+        break;
+    }
+  }
+
+  void _showUserProfileDialog() {
+    final user = FirebaseAuth.instance.currentUser;
+    
+    Get.dialog(
+      AlertDialog(
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: AppColors.primary.withOpacity(0.1),
+              child: Icon(
+                Icons.person,
+                color: AppColors.primary,
+                size: 24,
+              ),
+            ),
+            SizedBox(width: 12),
+            Text('Admin Profile'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildProfileRow('Email', user?.email ?? 'N/A'),
+            SizedBox(height: 12),
+            _buildProfileRow('User ID', user?.uid.substring(0, 8) ?? 'N/A'),
+            SizedBox(height: 12),
+            _buildProfileRow('Account Type', 'Administrator'),
+            SizedBox(height: 12),
+            _buildProfileRow('Last Login', _formatLastLogin(user?.metadata.lastSignInTime)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileRow(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatLastLogin(DateTime? lastLogin) {
+    if (lastLogin == null) return 'N/A';
+    
+    final now = DateTime.now();
+    final difference = now.difference(lastLogin);
+    
+    if (difference.inDays > 0) {
+      return '${difference.inDays} days ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} hours ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} minutes ago';
+    } else {
+      return 'Just now';
+    }
+  }
+
+  void _showSettingsDialog() {
+    Get.dialog(
+      AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.settings, color: AppColors.primary),
+            SizedBox(width: 12),
+            Text('Settings'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.notifications_outlined),
+              title: Text('Notifications'),
+              subtitle: Text('Manage notification preferences'),
+              onTap: () {
+                Get.back();
+                Get.snackbar(
+                  'Info',
+                  'Notification settings coming soon!',
+                  backgroundColor: Colors.blue[100],
+                  colorText: Colors.blue[800],
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.security_outlined),
+              title: Text('Security'),
+              subtitle: Text('Change password and security settings'),
+              onTap: () {
+                Get.back();
+                Get.snackbar(
+                  'Info',
+                  'Security settings coming soon!',
+                  backgroundColor: Colors.blue[100],
+                  colorText: Colors.blue[800],
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.help_outline),
+              title: Text('Help & Support'),
+              subtitle: Text('Get help and contact support'),
+              onTap: () {
+                Get.back();
+                Get.snackbar(
+                  'Info',
+                  'Help & Support coming soon!',
+                  backgroundColor: Colors.blue[100],
+                  colorText: Colors.blue[800],
+                );
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLogoutConfirmation() {
+    Get.dialog(
+      AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.logout, color: Colors.red),
+            SizedBox(width: 12),
+            Text('Confirm Logout'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              color: Colors.orange,
+              size: 48,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Are you sure you want to log out from the admin dashboard?',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Get.back(); // Close dialog
+              await _performLogout();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: Text('Log Out'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _performLogout() async {
+    try {
+      // Show loading
+      Get.dialog(
+        Center(
+          child: Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: AppColors.primary),
+                SizedBox(height: 16),
+                Text('Logging out...'),
+              ],
+            ),
+          ),
+        ),
+        barrierDismissible: false,
+      );
+
+      // Sign out from Firebase
+      await FirebaseAuth.instance.signOut();
+      
+      // Close loading dialog
+      Get.back();
+      
+      // Navigate to login screen
+      Get.offAllNamed('/login');
+      
+      // Show success message
+      Get.snackbar(
+        'Success',
+        'You have been logged out successfully',
+        backgroundColor: Colors.green[100],
+        colorText: Colors.green[800],
+        duration: Duration(seconds: 2),
+      );
+    } catch (e) {
+      // Close loading dialog
+      Get.back();
+      
+      // Show error message
+      Get.snackbar(
+        'Error',
+        'Failed to log out: $e',
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[800],
+      );
+    }
   }
 
   Widget _buildDashboardStats(AdminProductController controller) {
@@ -764,4 +1265,6 @@ class _ProductFormDialog extends StatelessWidget {
         return Colors.grey;
     }
   }
+
+
 }
