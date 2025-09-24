@@ -18,39 +18,24 @@ class MyCartScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new, color: Colors.black87),
-              onPressed: () {
-                // Check if we can navigate back
-                if (Navigator.canPop(context)) {
-                  Get.back();
-                } else {
-                  // If we can't go back, switch to home tab
-                  try {
-                    final NavigationController navController = Get.find<NavigationController>();
-                    navController.changeTab(0); // Switch to home tab
-                  } catch (e) {
-                    // If navigation controller not found, try going back anyway
-                    Get.back();
-                  }
-                }
-              },
-            ),
-          ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () {
+            // Check if we can navigate back
+            if (Navigator.canPop(context)) {
+              Get.back();
+            } else {
+              // If we can't go back, switch to home tab
+              try {
+                final NavigationController navController =
+                    Get.find<NavigationController>();
+                navController.changeTab(0); // Switch to home tab
+              } catch (e) {
+                // If navigation controller not found, try going back anyway
+                Get.back();
+              }
+            }
+          },
         ),
         title: Text(
           'My Cart',
@@ -64,22 +49,9 @@ class MyCartScreen extends StatelessWidget {
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: IconButton(
-                icon: Icon(Icons.notifications_outlined, color: Colors.black87),
-                onPressed: () {},
-              ),
+            child: IconButton(
+              icon: Icon(Icons.notifications_outlined, color: Colors.black87),
+              onPressed: () {},
             ),
           ),
         ],
@@ -88,7 +60,7 @@ class MyCartScreen extends StatelessWidget {
         if (cartController.cartItems.isEmpty) {
           return _buildEmptyCart();
         }
-        
+
         return Column(
           children: [
             Expanded(
@@ -198,133 +170,136 @@ class MyCartScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(width: 16),
-              
+
               // Product Details
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                Text(
-                  item.name.replaceAll('"', '').toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(height: 4),
-                
-                // Price Row
-                Row(
-                  children: [
                     Text(
-                      '৳${item.price.toStringAsFixed(0)}',
+                      item.name..toUpperCase(),
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                         color: Colors.black87,
                       ),
                     ),
-                    SizedBox(width: 8),
-                    if (item.originalPrice > item.price)
-                      Text(
-                        '৳${item.originalPrice.toStringAsFixed(0)}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[500],
-                          decoration: TextDecoration.lineThrough,
-                        ),
-                      ),
-                    SizedBox(width: 8),
-                    if (item.discountPercentage.isNotEmpty)
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          item.discountPercentage,
+                    SizedBox(height: 4),
+
+                    // Price Row
+                    Row(
+                      children: [
+                        Text(
+                          '৳${item.price.toStringAsFixed(0)}',
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            color: Colors.black87,
                           ),
                         ),
-                      ),
-                  ],
-                ),
-                SizedBox(height: 4),
-                
-                // Color
-                Text(
-                  item.color,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                SizedBox(height: 12),
-                
-                // Quantity Controls
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    // Quantity Controls
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[300]!),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              Icons.remove,
-                              color: AppColors.primary,
-                              size: 18,
+                        SizedBox(width: 8),
+                        if (item.originalPrice > item.price)
+                          Text(
+                            '৳${item.originalPrice.toStringAsFixed(0)}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[500],
+                              decoration: TextDecoration.lineThrough,
                             ),
-                            onPressed: () {
-                              controller.decreaseQuantity(item.id, item.color);
-                            },
-                            padding: EdgeInsets.all(8),
-                            constraints: BoxConstraints(),
                           ),
+                        SizedBox(width: 8),
+                        if (item.discountPercentage.isNotEmpty)
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
                             child: Text(
-                              item.quantity.toString(),
+                              item.discountPercentage,
                               style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                          IconButton(
-                            icon: Icon(
-                              Icons.add,
-                              color: AppColors.primary,
-                              size: 18,
-                            ),
-                            onPressed: () {
-                              controller.increaseQuantity(item.id, item.color);
-                            },
-                            padding: EdgeInsets.all(8),
-                            constraints: BoxConstraints(),
-                          ),
-                        ],
+                      ],
+                    ),
+                    SizedBox(height: 4),
+
+                    // Color
+                    Text(
+                      item.color,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
                       ),
+                    ),
+                    SizedBox(height: 12),
+
+                    // Quantity Controls
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        // Quantity Controls
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  Icons.remove,
+                                  color: AppColors.primary,
+                                  size: 18,
+                                ),
+                                onPressed: () {
+                                  controller.decreaseQuantity(
+                                      item.id, item.color);
+                                },
+                                padding: EdgeInsets.all(8),
+                                constraints: BoxConstraints(),
+                              ),
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text(
+                                  item.quantity.toString(),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.add,
+                                  color: AppColors.primary,
+                                  size: 18,
+                                ),
+                                onPressed: () {
+                                  controller.increaseQuantity(
+                                      item.id, item.color);
+                                },
+                                padding: EdgeInsets.all(8),
+                                constraints: BoxConstraints(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          ],
-          ),
-          
+
           // Delete Button - Top Right
           Positioned(
             top: 0,
@@ -335,7 +310,8 @@ class MyCartScreen extends StatelessWidget {
                 Get.dialog(
                   AlertDialog(
                     title: Text('Remove Item'),
-                    content: Text('Are you sure you want to remove ${item.name.replaceAll('"', '')} from your cart?'),
+                    content: Text(
+                        'Are you sure you want to remove ${item.name.replaceAll('"', '')} from your cart?'),
                     actions: [
                       TextButton(
                         onPressed: () => Get.back(),
@@ -353,7 +329,8 @@ class MyCartScreen extends StatelessWidget {
                             colorText: Colors.red[800],
                           );
                         },
-                        child: Text('Remove', style: TextStyle(color: Colors.red)),
+                        child:
+                            Text('Remove', style: TextStyle(color: Colors.red)),
                       ),
                     ],
                   ),
@@ -412,7 +389,7 @@ class MyCartScreen extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             if (controller.totalSavings > 0) ...[
               SizedBox(height: 8),
               Row(
@@ -436,9 +413,9 @@ class MyCartScreen extends StatelessWidget {
                 ],
               ),
             ],
-            
+
             SizedBox(height: 20),
-            
+
             // Checkout Button
             CustomButton(
               text: 'Proceed to Checkout',

@@ -14,18 +14,8 @@ class AdminProductController extends GetxController {
   final ratingController = TextEditingController();
 
   // Category selection
-  var selectedCategory = 'Outdoor'.obs;
-  final categories = [
-    'Outdoor',
-    'Electronics',
-    'Furniture',
-    'Kitchen',
-    'Home Decor',
-    'Sports',
-    'Books',
-    'Fashion',
-    'Other'
-  ];
+  var selectedCategory = 'outdoor'.obs;
+  final categories = ['outdoor', 'appliances', 'furniture', 'special'];
 
   // Observable variables
   var products = <HomeModel>[].obs;
@@ -34,6 +24,7 @@ class AdminProductController extends GetxController {
   var activeProducts = 0.obs;
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final String mainDocId = "JbmCjuFy2CF90gyYW4tC";
 
   @override
   void onInit() {
@@ -53,68 +44,55 @@ class AdminProductController extends GetxController {
     super.onClose();
   }
 
-  void fetchProducts() {
-    _firestore
-        .collection('products')
-        .orderBy('id')
-        .snapshots()
-        .listen((snapshot) {
-      products.value =
-          snapshot.docs.map((doc) => HomeModel.fromJson(doc.data())).toList();
-      updateStats();
-    });
-  }
+  Future<void> fetchProducts() async {
+    try {
+      isLoading.value = true;
 
-  void updateStats() {
-    totalProducts.value = products.length;
-    activeProducts.value = products.where((product) => product.isActive).length;
-  }
+      final docRef = _firestore.collection('cetagories').doc(mainDocId);
+      List<HomeModel> allProducts = [];
 
-  void clearForm() {
-    titleController.clear();
-    imageController.clear();
-    descriptionController.clear();
-    regularPriceController.clear();
-    offerPriceController.clear();
-    offPriceController.clear();
-    ratingController.text = '5.0';
-    selectedCategory.value = 'Outdoor';
-  }
+      // Fetch from all categories
+      for (String category in categories) {
+        var snapshot = await docRef.collection(category).get();
+        var categoryProducts = snapshot.docs
+            .map((doc) => HomeModel.fromJson({...doc.data(), 'id': doc.id}))
+            .toList();
+        allProducts.addAll(categoryProducts);
+      }
 
-  void fillFormForEdit(HomeModel product) {
-    titleController.text = product.title.replaceAll('"', '');
-    imageController.text = product.image;
-    descriptionController.text = product.description;
-    regularPriceController.text = product.regularPrice.replaceAll('"', '');
-    offerPriceController.text = product.offerPrice.replaceAll('"', '');
-    offPriceController.text = product.offPrice.replaceAll('"', '');
-    ratingController.text = product.rating.replaceAll('"', '');
-    selectedCategory.value = product.category;
+      products.value = allProducts;
+      totalProducts.value = allProducts.length;
+      activeProducts.value =
+          allProducts.length; // Assuming all are active for now
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to fetch products: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> addProduct() async {
     if (!_validateForm()) return;
 
-    isLoading.value = true;
-
     try {
-      // Generate unique ID
-      String id = DateTime.now().millisecondsSinceEpoch.toString();
+      isLoading.value = true;
 
-      final product = HomeModel(
-        id: id,
-        title: titleController.text.trim(),
-        image: imageController.text.trim(),
-        description: descriptionController.text.trim(),
-        regularPrice: regularPriceController.text.trim(),
-        offerPrice: offerPriceController.text.trim(),
-        offPrice: offPriceController.text.trim(),
-        rating: ratingController.text.trim(),
-        category: selectedCategory.value,
-        isActive: true,
-      );
+      final docRef = _firestore
+          .collection('cetagories')
+          .doc(mainDocId)
+          .collection(selectedCategory.value);
 
-      await _firestore.collection('products').doc(id).set(product.toJson());
+      await docRef.add({
+        'title': titleController.text.trim(),
+        'image': imageController.text.trim(),
+        'description': descriptionController.text.trim(),
+        'regularPrice': regularPriceController.text.trim(),
+        'offerPrice': offerPriceController.text.trim(),
+        'offPrice': offPriceController.text.trim(),
+        'rating': ratingController.text.trim(),
+        'category': selectedCategory.value,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
       Get.snackbar(
         'Success',
@@ -125,6 +103,8 @@ class AdminProductController extends GetxController {
       );
 
       clearForm();
+      fetchProducts();
+      Get.back();
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -141,10 +121,16 @@ class AdminProductController extends GetxController {
   Future<void> updateProduct(String productId) async {
     if (!_validateForm()) return;
 
-    isLoading.value = true;
-
     try {
-      final updatedData = {
+      isLoading.value = true;
+
+      final docRef = _firestore
+          .collection('cetagories')
+          .doc(mainDocId)
+          .collection(selectedCategory.value)
+          .doc(productId);
+
+      await docRef.update({
         'title': titleController.text.trim(),
         'image': imageController.text.trim(),
         'description': descriptionController.text.trim(),
@@ -153,12 +139,8 @@ class AdminProductController extends GetxController {
         'offPrice': offPriceController.text.trim(),
         'rating': ratingController.text.trim(),
         'category': selectedCategory.value,
-      };
-
-      await _firestore
-          .collection('products')
-          .doc(productId)
-          .update(updatedData);
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
 
       Get.snackbar(
         'Success',
@@ -169,6 +151,8 @@ class AdminProductController extends GetxController {
       );
 
       clearForm();
+      fetchProducts();
+      Get.back();
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -184,7 +168,27 @@ class AdminProductController extends GetxController {
 
   Future<void> deleteProduct(String productId) async {
     try {
-      await _firestore.collection('products').doc(productId).delete();
+      // Find the product to get its category
+      HomeModel? productToDelete;
+      for (var product in products) {
+        if (product.id == productId) {
+          productToDelete = product;
+          break;
+        }
+      }
+
+      if (productToDelete == null) {
+        Get.snackbar('Error', 'Product not found');
+        return;
+      }
+
+      final docRef = _firestore
+          .collection('cetagories')
+          .doc(mainDocId)
+          .collection(productToDelete.category.toLowerCase())
+          .doc(productId);
+
+      await docRef.delete();
 
       Get.snackbar(
         'Success',
@@ -193,6 +197,8 @@ class AdminProductController extends GetxController {
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
+
+      fetchProducts();
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -202,6 +208,28 @@ class AdminProductController extends GetxController {
         colorText: Colors.white,
       );
     }
+  }
+
+  void fillFormForEdit(HomeModel product) {
+    titleController.text = product.title;
+    imageController.text = product.image;
+    descriptionController.text = product.description ?? '';
+    regularPriceController.text = product.regularPrice ?? '';
+    offerPriceController.text = product.offerPrice ?? '';
+    offPriceController.text = product.offPrice ?? '';
+    ratingController.text = product.rating;
+    selectedCategory.value = product.category.toLowerCase();
+  }
+
+  void clearForm() {
+    titleController.clear();
+    imageController.clear();
+    descriptionController.clear();
+    regularPriceController.clear();
+    offerPriceController.clear();
+    offPriceController.clear();
+    ratingController.clear();
+    selectedCategory.value = 'outdoor';
   }
 
   bool _validateForm() {
@@ -220,28 +248,6 @@ class AdminProductController extends GetxController {
       Get.snackbar(
         'Validation Error',
         'Please enter image URL',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
-      return false;
-    }
-
-    if (offerPriceController.text.trim().isEmpty) {
-      Get.snackbar(
-        'Validation Error',
-        'Please enter offer price',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
-      return false;
-    }
-
-    if (regularPriceController.text.trim().isEmpty) {
-      Get.snackbar(
-        'Validation Error',
-        'Please enter regular price',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.orange,
         colorText: Colors.white,

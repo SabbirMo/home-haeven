@@ -1,10 +1,12 @@
 import 'package:get/get.dart';
 import 'package:home_haven/features/admin_dashboard/admin_dashboard.dart';
+import 'package:home_haven/features/appliances/appliances_product_screen.dart';
 import 'package:home_haven/features/auth/forgot/screen/forgot_password_screen.dart';
 import 'package:home_haven/features/auth/login/binding/login_binding.dart';
 import 'package:home_haven/features/auth/login/screen/login_screen.dart';
 import 'package:home_haven/features/auth/registration/binding/registor_binding.dart';
 import 'package:home_haven/features/auth/registration/screen/register_screen.dart';
+import 'package:home_haven/features/furniture/screen/furniture_product_screen.dart';
 import 'package:home_haven/features/home/presentation/screen/home_screen.dart';
 import 'package:home_haven/features/home/presentation/binding/home_binding.dart';
 import 'package:home_haven/features/product_details/screen/product_details_screen.dart';
@@ -14,6 +16,8 @@ import 'package:home_haven/features/onboarding/view/onboarding_screen.dart';
 import 'package:home_haven/features/splash/splash_screen.dart';
 import 'package:home_haven/features/checkout/screen/checkout_screen.dart';
 import 'package:home_haven/features/products/screen/all_products_screen.dart';
+import 'package:home_haven/features/outdoor/screen/outdoor_products_screen.dart';
+import 'package:home_haven/features/special_offers/special_offers_screen.dart';
 
 class AppRouters {
   static final appRouters = [
@@ -65,6 +69,26 @@ class AppRouters {
       page: () => AllProductsScreen(),
       binding: HomeBinding(),
     ),
+    GetPage(
+      name: RouterConstant.outdoorProducts,
+      page: () => OutdoorProductsScreen(),
+      binding: HomeBinding(),
+    ),
+    GetPage(
+      name: RouterConstant.furnitureProducts,
+      page: () => FurnitureProductScreen(),
+      binding: HomeBinding(),
+    ),
+    GetPage(
+      name: RouterConstant.appliancesProducts,
+      page: () => AppliancesProductScreen(),
+      binding: HomeBinding(),
+    ),
+    GetPage(
+      name: RouterConstant.specialOffers,
+      page: () => SpecialOffersScreen(),
+      binding: HomeBinding(),
+    ),
   ];
 }
 
@@ -80,4 +104,8 @@ class RouterConstant {
   static final productDetails = '/productDetails';
   static final checkout = '/checkout';
   static final allProducts = '/allProducts';
+  static final outdoorProducts = '/outdoorProducts';
+  static final furnitureProducts = '/furnitureProducts';
+  static final appliancesProducts = '/appliancesProducts';
+  static final specialOffers = '/specialOffers';
 }

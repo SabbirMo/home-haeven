@@ -6,8 +6,8 @@ import 'package:home_haven/features/product_details/screen/product_details_scree
 import 'package:home_haven/features/cart/controller/cart_controller.dart';
 import 'package:home_haven/features/wishlist/controller/wishlist_controller.dart';
 
-class AllProductsScreen extends StatelessWidget {
-  const AllProductsScreen({super.key});
+class SpecialOffersScreen extends StatelessWidget {
+  const SpecialOffersScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,9 +23,6 @@ class AllProductsScreen extends StatelessWidget {
     Get.put(WishlistController());
     Get.put(CartController());
 
-    // Selected category for filtering
-    final selectedCategory = 'All'.obs;
-
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -36,7 +33,7 @@ class AllProductsScreen extends StatelessWidget {
           onPressed: () => Get.back(),
         ),
         title: Text(
-          'All Products',
+          'Special Offers',
           style: TextStyle(
             color: Colors.black87,
             fontSize: 24,
@@ -55,6 +52,11 @@ class AllProductsScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: Obx(() {
+          // Filter special products
+          final specialProducts = controller.allItem
+              .where((product) => product.category.toLowerCase() == 'special')
+              .toList();
+
           if (controller.allItem.isEmpty) {
             return Center(
               child: CircularProgressIndicator(
@@ -63,23 +65,74 @@ class AllProductsScreen extends StatelessWidget {
             );
           }
 
-          // Filter products based on selected category
-          final filteredProducts = selectedCategory.value == 'All'
-              ? controller.allItem
-              : controller.allItem
-                  .where((item) =>
-                      item.category.toLowerCase() ==
-                      selectedCategory.value.toLowerCase())
-                  .toList();
+          if (specialProducts.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.local_offer,
+                    size: 64,
+                    color: Colors.grey[400],
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'No Special Offers Found',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Check back later for special offers',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
 
           return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            padding: EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Category header
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Color(0xFFFFE0E0),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.local_offer,
+                        color: Color(0xFFD32F2F),
+                        size: 24,
+                      ),
+                      SizedBox(width: 12),
+                      Text(
+                        'Special Offers Collection',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFFD32F2F),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 16),
+
                 // Products count
                 Text(
-                  '${filteredProducts.length} Products Found',
+                  '${specialProducts.length} Special Offers Found',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[600],
@@ -88,22 +141,18 @@ class AllProductsScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 16),
 
-                // Category Filter
-                _buildCategoryFilter(selectedCategory),
-                SizedBox(height: 16),
-
                 // Products Grid
                 Expanded(
                   child: GridView.builder(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      childAspectRatio: 0.65,
+                      childAspectRatio: 0.6,
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
                     ),
-                    itemCount: filteredProducts.length,
+                    itemCount: specialProducts.length,
                     itemBuilder: (context, index) {
-                      final item = filteredProducts[index];
+                      final item = specialProducts[index];
                       return _buildProductCard(item);
                     },
                   ),
@@ -136,7 +185,7 @@ class AllProductsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Product Image
+            // Product Image with Special Offer Badge
             Expanded(
               child: Stack(
                 children: [
@@ -157,15 +206,15 @@ class AllProductsScreen extends StatelessWidget {
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
                             decoration: BoxDecoration(
-                              color: Colors.grey[200],
+                              color: Color(0xFFFFE0E0),
                               borderRadius: BorderRadius.vertical(
                                   top: Radius.circular(16)),
                             ),
                             child: Center(
                               child: Icon(
-                                Icons.chair,
+                                Icons.local_offer,
                                 size: 50,
-                                color: Colors.grey[400],
+                                color: Color(0xFFD32F2F),
                               ),
                             ),
                           );
@@ -173,62 +222,43 @@ class AllProductsScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Discount Badge - only show if offPrice exists
+                  // Special Offer Badge
                   if (item.offPrice != null && item.offPrice!.isNotEmpty)
                     Positioned(
                       top: 8,
-                      left: 8,
+                      right: 8,
                       child: Container(
                         padding:
                             EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: AppColors.red,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          item.offPrice!.replaceAll('"', ''),
+                          item.offPrice!,
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 12,
+                            fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ),
-                  // Category Badge
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: _getCategoryColor(item.category),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        item.category.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
 
             // Product Details
-            Expanded(
+            Flexible(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
+                padding: EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     // Product Title
                     Text(
-                      (item.title ?? '').replaceAll('"', ''),
+                      item.title,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -237,9 +267,9 @@ class AllProductsScreen extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 4),
+                    SizedBox(height: 6),
 
-                    // Price Row - Show offer price if available, otherwise regular price
+                    // Price Row
                     Row(
                       children: [
                         if (item.offerPrice != null &&
@@ -249,8 +279,9 @@ class AllProductsScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
+                              color: AppColors.red,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           )
                         else
                           Text(
@@ -258,10 +289,10 @@ class AllProductsScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
+                              color: AppColors.red,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        // Show regular price with strikethrough only if offer price exists and is different
                         if (item.offerPrice != null &&
                             item.offerPrice!.isNotEmpty &&
                             item.regularPrice != item.offerPrice &&
@@ -278,32 +309,35 @@ class AllProductsScreen extends StatelessWidget {
                         ],
                       ],
                     ),
-                    SizedBox(height: 4),
+                    SizedBox(height: 6),
 
                     // Rating
                     Row(
                       children: [
                         Icon(Icons.star, color: Colors.amberAccent, size: 14),
                         SizedBox(width: 2),
-                        Text(
-                          (item.rating ?? '').replaceAll('"', ''),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
+                        Expanded(
+                          child: Text(
+                            item.rating,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
 
-                    //Spacer(),
+                    SizedBox(height: 8),
 
                     // Action Buttons Row
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12.0),
-                      child: Row(
-                        children: [
-                          // Wishlist Button
-                          Expanded(
+                    Row(
+                      children: [
+                        // Wishlist Button
+                        Expanded(
+                          child: Container(
+                            height: 32,
                             child: GetBuilder<WishlistController>(
                               init: WishlistController(),
                               builder: (wishlistController) {
@@ -314,7 +348,6 @@ class AllProductsScreen extends StatelessWidget {
                                     wishlistController.toggleWishlist(item);
                                   },
                                   child: Container(
-                                    height: 32,
                                     decoration: BoxDecoration(
                                       color: isWishlisted
                                           ? AppColors.red.withOpacity(0.1)
@@ -343,10 +376,13 @@ class AllProductsScreen extends StatelessWidget {
                               },
                             ),
                           ),
-                          SizedBox(width: 8),
-                          // Add to Cart Button
-                          Expanded(
-                            flex: 2,
+                        ),
+                        SizedBox(width: 8),
+                        // Add to Cart Button
+                        Expanded(
+                          flex: 2,
+                          child: Container(
+                            height: 32,
                             child: GetBuilder<CartController>(
                               init: CartController(),
                               builder: (cartController) {
@@ -360,17 +396,17 @@ class AllProductsScreen extends StatelessWidget {
                                     }
                                   },
                                   child: Container(
-                                    height: 32,
                                     decoration: BoxDecoration(
                                       color: isInCart
                                           ? Colors.green
-                                          : AppColors.primary,
+                                          : AppColors.red,
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Center(
                                       child: Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
                                             isInCart
@@ -380,12 +416,15 @@ class AllProductsScreen extends StatelessWidget {
                                             size: 14,
                                           ),
                                           SizedBox(width: 4),
-                                          Text(
-                                            isInCart ? 'Added' : 'Add',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w600,
+                                          Flexible(
+                                            child: Text(
+                                              isInCart ? 'Added' : 'Add',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
                                         ],
@@ -396,8 +435,8 @@ class AllProductsScreen extends StatelessWidget {
                               },
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -407,68 +446,5 @@ class AllProductsScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  // Category Filter Widget
-  Widget _buildCategoryFilter(RxString selectedCategory) {
-    final categories = ['All', 'Outdoor', 'Appliances', 'Furniture', 'Special'];
-
-    return Container(
-      height: 40,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          final category = categories[index];
-
-          return Obx(() {
-            final isSelected = category == selectedCategory.value;
-
-            return Padding(
-              padding: EdgeInsets.only(right: 12),
-              child: GestureDetector(
-                onTap: () {
-                  selectedCategory.value = category;
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary : Colors.transparent,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected ? AppColors.primary : Colors.grey[400]!,
-                    ),
-                  ),
-                  child: Text(
-                    category,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.grey[600],
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w400,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          });
-        },
-      ),
-    );
-  }
-
-  // Helper method to get category color
-  Color _getCategoryColor(String category) {
-    switch (category.toLowerCase()) {
-      case 'outdoor':
-        return Color(0xFF2E7D32); // Green
-      case 'appliances':
-        return Color(0xFF1976D2); // Blue
-      case 'furniture':
-        return Color(0xFFFF9800); // Orange
-      case 'special':
-        return Color(0xFFD32F2F); // Red
-      default:
-        return Colors.grey;
-    }
   }
 }

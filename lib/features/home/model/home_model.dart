@@ -2,10 +2,10 @@ class HomeModel {
   final String id;
   final String image;
   final String title;
-  final String offerPrice;
+  final String? offerPrice;
   final String regularPrice;
   final String rating;
-  final String offPrice;
+  final String? offPrice;
   final String description;
   final String category;
   final bool isActive;
@@ -14,12 +14,12 @@ class HomeModel {
     required this.id,
     required this.image,
     required this.title,
-    required this.offerPrice,
+    this.offerPrice,
     required this.regularPrice,
     required this.rating,
-    required this.offPrice,
+    this.offPrice,
     this.description = '',
-    this.category = 'Outdoor',
+    required this.category,
     this.isActive = true,
   });
 
@@ -28,12 +28,12 @@ class HomeModel {
       id: json['id'] ?? '',
       image: json['image'] ?? '',
       title: json['title'] ?? '',
-      offerPrice: json['offerPrice'] ?? '0',
-      regularPrice: json['regularPrice'] ?? '0',
+      offerPrice: json['offerPrice'],
+      regularPrice: json['regularPrice'] ?? '0.0',
       rating: json['rating'] ?? '0.0',
-      offPrice: json['offPrice'] ?? '0',
+      offPrice: json['offPrice'],
       description: json['description'] ?? '',
-      category: json['category'] ?? 'Outdoor',
+      category: json['category'] ?? '',
       isActive: json['isActive'] ?? true,
     );
   }

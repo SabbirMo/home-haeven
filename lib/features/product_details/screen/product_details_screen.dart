@@ -161,44 +161,50 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         SizedBox(height: 8),
 
                         // Price Section
-                        Row(
-                          children: [
-                            Text(
-                              widget.product.offerPrice.replaceAll('"', ''),
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            if (widget.product.regularPrice !=
-                                widget.product.offerPrice)
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.red,
-                                  borderRadius: BorderRadius.circular(4),
+                        if (widget.product.offerPrice != null)
+                          Row(
+                            children: [
+                              Text(
+                                widget.product.offerPrice!.replaceAll('"', ''),
+                                style: TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
                                 ),
-                                child: Text(
-                                  widget.product.offPrice,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
+                              ),
+                              SizedBox(width: 12),
+                              if (widget.product.regularPrice != null &&
+                                  widget.product.offerPrice != null &&
+                                  widget.product.regularPrice !=
+                                      widget.product.offerPrice &&
+                                  widget.product.offPrice != null)
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    widget.product.offPrice!,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                              ),
-                          ],
-                        ),
+                            ],
+                          ),
 
-                        if (widget.product.regularPrice !=
-                            widget.product.offerPrice)
+                        if (widget.product.regularPrice != null &&
+                            widget.product.offerPrice != null &&
+                            widget.product.regularPrice !=
+                                widget.product.offerPrice)
                           Padding(
                             padding: EdgeInsets.only(top: 4),
                             child: Text(
-                              widget.product.regularPrice.replaceAll('"', ''),
+                              widget.product.regularPrice!.replaceAll('"', ''),
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey[600],

@@ -6,26 +6,73 @@ class HomeController extends GetxController {
   var allItem = <HomeModel>[].obs;
   var filterItem = <HomeModel>[].obs;
 
+  final String mainDocId = "JbmCjuFy2CF90gyYW4tC";
+
   @override
   void onInit() {
     super.onInit();
-    fetchData();
+    fetchAllProducts();
   }
 
-  void fetchData() {
-    FirebaseFirestore.instance
-        .collection('products')
-        .orderBy('id')
-        .snapshots()
-        .listen((snapshot) {
-      allItem.value =
+  Future<void> fetchAllProducts() async {
+    try {
+      final docRef =
+          FirebaseFirestore.instance.collection('cetagories').doc(mainDocId);
+
+      List<HomeModel> temp = [];
+
+      // appliances
+      var appliancesSnap = await docRef.collection('appliances').get();
+      temp.addAll(appliancesSnap.docs
+          .map((doc) => HomeModel.fromJson(doc.data()))
+          .toList());
+
+      // furniture
+      var furnitureSnap = await docRef.collection('furniture').get();
+      temp.addAll(furnitureSnap.docs
+          .map((doc) => HomeModel.fromJson(doc.data()))
+          .toList());
+
+      // outdoor
+      var outdoorSnap = await docRef.collection('outdoor').get();
+      temp.addAll(outdoorSnap.docs
+          .map((doc) => HomeModel.fromJson(doc.data()))
+          .toList());
+
+      // special
+      var specialSnap = await docRef.collection('special').get();
+      temp.addAll(specialSnap.docs
+          .map((doc) => HomeModel.fromJson(doc.data()))
+          .toList());
+
+      allItem.value = temp;
+      filterItem.value = temp;
+
+      print("Total Products: ${allItem.length}");
+    } catch (e) {
+      print("Error fetching products: $e");
+    }
+  }
+
+  /// specific category  data fatch
+  Future<void> fetchCategoryProducts(String category) async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('categories')
+          .doc(mainDocId)
+          .collection(category) // appliances / furniture / outdoor / special
+          .get();
+
+      filterItem.value =
           snapshot.docs.map((doc) => HomeModel.fromJson(doc.data())).toList();
 
-      filterItem.value = allItem;
-      print("Realtime Data fetched: ${allItem.length} items");
-    });
+      print("Category $category fetched: ${filterItem.length}");
+    } catch (e) {
+      print("Error fetching $category: $e");
+    }
   }
 
+  /// Search filter
   void searchProduct(String query) {
     if (query.isEmpty) {
       filterItem.value = allItem;

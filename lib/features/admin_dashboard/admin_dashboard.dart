@@ -1,5 +1,5 @@
 import 'package:home_haven/core/util/export.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:home_haven/core/assets/app_colors.dart';
 import 'package:home_haven/features/home/model/home_model.dart';
 import 'package:get/get.dart';
@@ -325,24 +325,9 @@ class AdminDashboard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 2),
-                Row(
-                  children: [
-                    Icon(Icons.category, size: 16, color: Colors.grey[600]),
-                    SizedBox(width: 4),
-                    Text(
-                      product.category,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 2),
+                SizedBox(height: 4),
                 Text(
-                  '৳${product.offerPrice.replaceAll('"', '')}',
+                  '৳${(product.offerPrice ?? '0').replaceAll('"', '')}',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -553,8 +538,6 @@ class _ProductFormDialog extends StatelessWidget {
                       icon: Icons.title,
                     ),
                     SizedBox(height: 16),
-                    _buildCategoryDropdown(controller),
-                    SizedBox(height: 16),
                     _buildTextField(
                       controller: controller.imageController,
                       label: 'Image URL',
@@ -567,6 +550,9 @@ class _ProductFormDialog extends StatelessWidget {
                       icon: Icons.description,
                       maxLines: 3,
                     ),
+                    SizedBox(height: 16),
+                    // Category Selection Dropdown
+                    _buildCategoryDropdown(controller),
                     SizedBox(height: 16),
                     Row(
                       children: [
@@ -590,27 +576,46 @@ class _ProductFormDialog extends StatelessWidget {
                       ],
                     ),
                     SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildTextField(
-                            controller: controller.offPriceController,
-                            label: 'Discount %',
-                            icon: Icons.percent,
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: _buildTextField(
-                            controller: controller.ratingController,
-                            label: 'Rating',
-                            icon: Icons.star,
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                      ],
-                    ),
+                    // Conditional fields for Special category only
+                    Obx(() => controller.selectedCategory.value == 'special'
+                        ? Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildTextField(
+                                      controller: controller.offPriceController,
+                                      label: 'Discount %',
+                                      icon: Icons.percent,
+                                      keyboardType: TextInputType.number,
+                                    ),
+                                  ),
+                                  SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildTextField(
+                                      controller: controller.ratingController,
+                                      label: 'Rating',
+                                      icon: Icons.star,
+                                      keyboardType: TextInputType.number,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 16),
+                            ],
+                          )
+                        : Row(
+                            children: [
+                              Expanded(
+                                child: _buildTextField(
+                                  controller: controller.ratingController,
+                                  label: 'Rating',
+                                  icon: Icons.star,
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ),
+                            ],
+                          )),
                     SizedBox(height: 24),
                   ],
                 ),
@@ -681,86 +686,82 @@ class _ProductFormDialog extends StatelessWidget {
 
   Widget _buildCategoryDropdown(AdminProductController controller) {
     return Obx(() => Container(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey[400]!),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: DropdownButtonFormField<String>(
-            value: controller.selectedCategory.value,
-            decoration: InputDecoration(
-              labelText: 'Product Category',
-              prefixIcon: Icon(Icons.category, color: AppColors.primary),
-              border: InputBorder.none,
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: controller.selectedCategory.value,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down, color: AppColors.primary),
+              hint: Row(
+                children: [
+                  Icon(Icons.category, color: AppColors.primary),
+                  SizedBox(width: 12),
+                  Text('Select Category'),
+                ],
+              ),
+              items: controller.categories.map((String category) {
+                return DropdownMenuItem<String>(
+                  value: category,
+                  child: Row(
+                    children: [
+                      Icon(
+                        _getCategoryIcon(category),
+                        color: _getCategoryColor(category),
+                        size: 20,
+                      ),
+                      SizedBox(width: 12),
+                      Text(
+                        category.toUpperCase(),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  controller.selectedCategory.value = newValue;
+                }
+              },
             ),
-            items: controller.categories.map((String category) {
-              return DropdownMenuItem<String>(
-                value: category,
-                child: Row(
-                  children: [
-                    _getCategoryIcon(category),
-                    SizedBox(width: 8),
-                    Text(category),
-                  ],
-                ),
-              );
-            }).toList(),
-            onChanged: (String? newValue) {
-              if (newValue != null) {
-                controller.selectedCategory.value = newValue;
-              }
-            },
           ),
         ));
   }
 
-  Widget _getCategoryIcon(String category) {
-    IconData iconData;
-    Color iconColor;
-
-    switch (category) {
-      case 'Outdoor':
-        iconData = Icons.chair_outlined;
-        iconColor = Colors.green;
-        break;
-      case 'Electronics':
-        iconData = Icons.devices;
-        iconColor = Colors.blue;
-        break;
-      case 'Furniture':
-        iconData = Icons.weekend_outlined;
-        iconColor = Colors.orange;
-        break;
-      case 'Kitchen':
-        iconData = Icons.kitchen;
-        iconColor = Colors.red;
-        break;
-      case 'Home Decor':
-        iconData = Icons.home;
-        iconColor = Colors.purple;
-        break;
-      case 'Sports':
-        iconData = Icons.sports_soccer;
-        iconColor = Colors.green[700]!;
-        break;
-      case 'Books':
-        iconData = Icons.book;
-        iconColor = Colors.brown;
-        break;
-      case 'Fashion':
-        iconData = Icons.checkroom;
-        iconColor = Colors.pink;
-        break;
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'outdoor':
+        return Icons.outdoor_grill;
+      case 'appliances':
+        return Icons.kitchen;
+      case 'furniture':
+        return Icons.chair;
+      case 'special':
+        return Icons.local_offer;
       default:
-        iconData = Icons.apps;
-        iconColor = Colors.grey;
+        return Icons.category;
     }
+  }
 
-    return Icon(
-      iconData,
-      color: iconColor,
-      size: 20,
-    );
+  Color _getCategoryColor(String category) {
+    switch (category.toLowerCase()) {
+      case 'outdoor':
+        return Color(0xFF2E7D32); // Green
+      case 'appliances':
+        return Color(0xFF1976D2); // Blue
+      case 'furniture':
+        return Color(0xFFFF9800); // Orange
+      case 'special':
+        return Color(0xFFD32F2F); // Red
+      default:
+        return Colors.grey;
+    }
   }
 }

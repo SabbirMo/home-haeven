@@ -3,15 +3,15 @@ import 'package:home_haven/features/home/model/home_model.dart';
 
 class WishlistController extends GetxController {
   var wishlistItems = <HomeModel>[].obs;
-  
+
   // Get total wishlist items count
   int get itemCount => wishlistItems.length;
-  
+
   // Check if item is in wishlist
   bool isInWishlist(String productId) {
     return wishlistItems.any((item) => item.id == productId);
   }
-  
+
   // Add item to wishlist
   void addToWishlist(HomeModel product) {
     if (!isInWishlist(product.id)) {
@@ -20,11 +20,10 @@ class WishlistController extends GetxController {
         'Added to Wishlist',
         '${product.title} has been added to your wishlist',
         duration: Duration(seconds: 2),
-        snackPosition: SnackPosition.BOTTOM,
       );
     }
   }
-  
+
   // Remove item from wishlist
   void removeFromWishlist(String productId) {
     int index = wishlistItems.indexWhere((item) => item.id == productId);
@@ -35,11 +34,10 @@ class WishlistController extends GetxController {
         'Removed from Wishlist',
         '$productName has been removed from your wishlist',
         duration: Duration(seconds: 2),
-        snackPosition: SnackPosition.BOTTOM,
       );
     }
   }
-  
+
   // Toggle wishlist status
   void toggleWishlist(HomeModel product) {
     if (isInWishlist(product.id)) {
@@ -48,7 +46,7 @@ class WishlistController extends GetxController {
       addToWishlist(product);
     }
   }
-  
+
   // Clear all wishlist items
   void clearWishlist() {
     wishlistItems.clear();
@@ -56,7 +54,6 @@ class WishlistController extends GetxController {
       'Wishlist Cleared',
       'All items have been removed from your wishlist',
       duration: Duration(seconds: 2),
-      snackPosition: SnackPosition.BOTTOM,
     );
   }
 }
