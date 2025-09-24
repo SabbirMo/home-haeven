@@ -320,7 +320,7 @@ class HomeScreen extends StatelessWidget {
                             crossAxisCount: 2,
                             crossAxisSpacing: 16,
                             mainAxisSpacing: 16,
-                            childAspectRatio: 0.75,
+                            childAspectRatio: 0.68,
                           ),
                           itemCount: controller.filterItem.length > 6 ? 6 : controller.filterItem.length,
                           itemBuilder: (context, index) {
@@ -398,7 +398,7 @@ class HomeScreen extends StatelessWidget {
                                   Expanded(
                                     flex: 2,
                                     child: Padding(
-                                      padding: EdgeInsets.all(12),
+                                      padding: EdgeInsets.all(6),
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
@@ -406,14 +406,14 @@ class HomeScreen extends StatelessWidget {
                                           Text(
                                             item.title.replaceAll('"', ''),
                                             style: TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 13,
                                               fontWeight: FontWeight.w500,
                                               color: Colors.black87,
                                             ),
                                             maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
                                           ),
-                                          SizedBox(height: 4),
+                                          SizedBox(height: 2),
                                           
                                           // Price Section
                                           Row(
@@ -421,19 +421,21 @@ class HomeScreen extends StatelessWidget {
                                               Text(
                                                 '৳${item.offerPrice.replaceAll('"', '')}',
                                                 style: TextStyle(
-                                                  fontSize: 16,
+                                                  fontSize: 14,
                                                   fontWeight: FontWeight.bold,
                                                   color: AppColors.primary,
                                                 ),
                                               ),
                                               if (item.regularPrice != item.offerPrice && item.regularPrice.isNotEmpty) ...[
-                                                SizedBox(width: 4),
-                                                Text(
-                                                  '৳${item.regularPrice.replaceAll('"', '')}',
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey[600],
-                                                    decoration: TextDecoration.lineThrough,
+                                                SizedBox(width: 3),
+                                                Flexible(
+                                                  child: Text(
+                                                    '৳${item.regularPrice.replaceAll('"', '')}',
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color: Colors.grey[600],
+                                                      decoration: TextDecoration.lineThrough,
+                                                    ),
                                                   ),
                                                 ),
                                               ],
@@ -443,12 +445,12 @@ class HomeScreen extends StatelessWidget {
                                           // Rating
                                           Row(
                                             children: [
-                                              Icon(Icons.star, color: Colors.amber, size: 16),
-                                              SizedBox(width: 2),
+                                              Icon(Icons.star, color: Colors.amber, size: 14),
+                                              SizedBox(width: 1),
                                               Text(
                                                 item.rating.replaceAll('"', ''),
                                                 style: TextStyle(
-                                                  fontSize: 12,
+                                                  fontSize: 11,
                                                   color: Colors.grey[600],
                                                 ),
                                               ),
@@ -470,10 +472,10 @@ class HomeScreen extends StatelessWidget {
                                                         wishlistController.toggleWishlist(item);
                                                       },
                                                       child: Container(
-                                                        height: 32,
+                                                        height: 26,
                                                         decoration: BoxDecoration(
                                                           color: isWishlisted ? AppColors.red.withOpacity(0.1) : Colors.grey[100],
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          borderRadius: BorderRadius.circular(6),
                                                           border: Border.all(
                                                             color: isWishlisted ? AppColors.red : Colors.grey[300]!,
                                                             width: 1,
@@ -483,7 +485,7 @@ class HomeScreen extends StatelessWidget {
                                                           child: Icon(
                                                             isWishlisted ? Icons.favorite : Icons.favorite_border,
                                                             color: isWishlisted ? AppColors.red : Colors.grey[600],
-                                                            size: 16,
+                                                            size: 14,
                                                           ),
                                                         ),
                                                       ),
@@ -491,7 +493,7 @@ class HomeScreen extends StatelessWidget {
                                                   },
                                                 ),
                                               ),
-                                              SizedBox(width: 8),
+                                              SizedBox(width: 6),
                                               // Add to Cart Button
                                               Expanded(
                                                 flex: 2,
@@ -506,27 +508,31 @@ class HomeScreen extends StatelessWidget {
                                                         }
                                                       },
                                                       child: Container(
-                                                        height: 32,
+                                                        height: 26,
                                                         decoration: BoxDecoration(
                                                           color: isInCart ? Colors.green : AppColors.primary,
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          borderRadius: BorderRadius.circular(6),
                                                         ),
                                                         child: Center(
                                                           child: Row(
                                                             mainAxisAlignment: MainAxisAlignment.center,
+                                                            mainAxisSize: MainAxisSize.min,
                                                             children: [
                                                               Icon(
                                                                 isInCart ? Icons.check : Icons.shopping_cart_outlined,
                                                                 color: Colors.white,
-                                                                size: 14,
+                                                                size: 12,
                                                               ),
-                                                              SizedBox(width: 4),
-                                                              Text(
-                                                                isInCart ? 'Added' : 'Add',
-                                                                style: TextStyle(
-                                                                  color: Colors.white,
-                                                                  fontSize: 12,
-                                                                  fontWeight: FontWeight.w600,
+                                                              SizedBox(width: 2),
+                                                              Flexible(
+                                                                child: Text(
+                                                                  isInCart ? 'Added' : 'Add',
+                                                                  style: TextStyle(
+                                                                    color: Colors.white,
+                                                                    fontSize: 10,
+                                                                    fontWeight: FontWeight.w600,
+                                                                  ),
+                                                                  overflow: TextOverflow.ellipsis,
                                                                 ),
                                                               ),
                                                             ],
