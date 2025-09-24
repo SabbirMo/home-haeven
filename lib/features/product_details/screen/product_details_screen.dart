@@ -163,7 +163,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         Row(
                           children: [
                             Text(
-                              widget.product.offerPrice,
+                              widget.product.offerPrice.replaceAll('"', ''),
                               style: TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
@@ -197,7 +197,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           Padding(
                             padding: EdgeInsets.only(top: 4),
                             child: Text(
-                              widget.product.regularPrice,
+                              widget.product.regularPrice.replaceAll('"', ''),
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey[500],

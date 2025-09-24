@@ -5,6 +5,7 @@ import 'package:home_haven/features/carouselslider/presentation/screen/carousel_
 import 'package:home_haven/features/product_details/screen/product_details_screen.dart';
 import 'package:home_haven/features/cart/controller/cart_controller.dart';
 import 'package:home_haven/features/wishlist/controller/wishlist_controller.dart';
+import 'package:home_haven/features/products/screen/all_products_screen.dart';
 import '../controller/home_controller.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -13,6 +14,8 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final HomeController controller = Get.find<HomeController>();
+    // Ensure WishlistController is initialized
+    Get.put(WishlistController());
 
     return Scaffold(
       body: SafeArea(
@@ -61,14 +64,16 @@ class HomeScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Special Offers',
+                            'Popular Products',
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           InkWell(
-                            onTap: () {},
+                            onTap: () {
+                              Get.to(() => AllProductsScreen());
+                            },
                             child: Text(
                               "See More",
                               style: TextStyle(
@@ -138,7 +143,7 @@ class HomeScreen extends StatelessWidget {
                                                     ),
                                                     child: Center(
                                                       child: Text(
-                                                        item.offPrice,
+                                                        item.offPrice.replaceAll('"', ''),
                                                         style: TextStyle(
                                                             color: Colors.white,
                                                             fontSize: 11),
@@ -150,13 +155,13 @@ class HomeScreen extends StatelessWidget {
                                             ),
                                             SizedBox(height: 3),
                                             Text(
-                                              item.title,
+                                              item.title.replaceAll('"', ''),
                                               style: TextStyle(
                                                 fontSize: 16,
                                               ),
                                             ),
                                             Text(
-                                              '৳${item.offerPrice}',
+                                              '৳${item.offerPrice.replaceAll('"', '')}',
                                               style: TextStyle(
                                                 fontSize: 19,
                                                 fontWeight: FontWeight.w500,
@@ -165,7 +170,7 @@ class HomeScreen extends StatelessWidget {
                                             ),
                                             if (item.regularPrice != item.offerPrice && item.regularPrice.isNotEmpty)
                                               Text(
-                                                '৳${item.regularPrice}',
+                                                '৳${item.regularPrice.replaceAll('"', '')}',
                                                 style: TextStyle(
                                                   fontSize: 14,
                                                   color: Colors.grey[600],
@@ -176,7 +181,7 @@ class HomeScreen extends StatelessWidget {
                                               children: [
                                                 Icon(Icons.star,
                                                     color: Colors.amberAccent),
-                                                Text(item.rating),
+                                                Text(item.rating.replaceAll('"', '')),
                                               ],
                                             ),
                                           ],
@@ -196,65 +201,73 @@ class HomeScreen extends StatelessWidget {
                                                   onTap: () {
                                                     wishlistController.toggleWishlist(item);
                                                   },
-                                                  child: Container(
-                                                    height: 32,
-                                                    decoration: BoxDecoration(
-                                                      color: isWishlisted ? AppColors.red.withOpacity(0.1) : Colors.grey[100],
-                                                      borderRadius: BorderRadius.circular(8),
-                                                      border: Border.all(
-                                                        color: isWishlisted ? AppColors.red : Colors.grey[300]!,
-                                                        width: 1,
-                                                      ),
-                                                    ),
-                                                    child: Center(
-                                                      child: Icon(
-                                                        isWishlisted ? Icons.favorite : Icons.favorite_border,
-                                                        color: isWishlisted ? AppColors.red : Colors.grey[600],
-                                                        size: 16,
-                                                      ),
+                                                child: Container(
+                                                  height: 32,
+                                                  decoration: BoxDecoration(
+                                                    color: isWishlisted ? AppColors.red.withOpacity(0.1) : Colors.grey[100],
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    border: Border.all(
+                                                      color: isWishlisted ? AppColors.red : Colors.grey[300]!,
+                                                      width: 1,
                                                     ),
                                                   ),
-                                                );
-                                              },
+                                                  child: Center(
+                                                    child: Icon(
+                                                      isWishlisted ? Icons.favorite : Icons.favorite_border,
+                                                      color: isWishlisted ? AppColors.red : Colors.grey[600],
+                                                      size: 16,
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
                                             ),
                                           ),
                                           SizedBox(width: 8),
                                           // Add to Cart Button
                                           Expanded(
                                             flex: 2,
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                final cartController = Get.find<CartController>();
-                                                cartController.addToCart(item, 'Default');
-                                              },
-                                              child: Container(
-                                                height: 32,
-                                                decoration: BoxDecoration(
-                                                  color: AppColors.primary,
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: Center(
-                                                  child: Row(
-                                                    mainAxisAlignment: MainAxisAlignment.center,
-                                                    children: [
-                                                      Icon(
-                                                        Icons.shopping_cart_outlined,
-                                                        color: Colors.white,
-                                                        size: 14,
-                                                      ),
-                                                      SizedBox(width: 4),
-                                                      Text(
-                                                        'Add',
-                                                        style: TextStyle(
+                                            child: GetBuilder<CartController>(
+                                              init: CartController(),
+                                              builder: (cartController) {
+                                                bool isInCart = cartController.isInCart(item.id);
+                                                
+                                                return GestureDetector(
+                                                onTap: () {
+                                                  if (!isInCart) {
+                                                    cartController.addToCart(item, 'Default');
+                                                  }
+                                                },
+                                                child: Container(
+                                                  height: 32,
+                                                  decoration: BoxDecoration(
+                                                    color: isInCart ? Colors.green : AppColors.primary,
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: Center(
+                                                    child: Row(
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        Icon(
+                                                          isInCart ? Icons.check : Icons.shopping_cart_outlined,
                                                           color: Colors.white,
-                                                          fontSize: 12,
-                                                          fontWeight: FontWeight.w600,
+                                                          size: 14,
                                                         ),
-                                                      ),
-                                                    ],
+                                                        SizedBox(width: 4),
+                                                        Text(
+                                                          isInCart ? 'Added' : 'Add',
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 12,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
+                                              );
+                                            },
                                             ),
                                           ),
                                         ],

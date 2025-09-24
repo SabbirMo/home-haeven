@@ -4,6 +4,7 @@ import 'package:home_haven/core/assets/app_colors.dart';
 import 'package:home_haven/features/cart/controller/cart_controller.dart';
 import 'package:home_haven/features/cart/model/cart_model.dart';
 import 'package:home_haven/features/onboarding/widget/custom_button.dart';
+import 'package:home_haven/features/bottom_navbar/controller/navigation_controller.dart';
 
 class MyCartScreen extends StatelessWidget {
   const MyCartScreen({super.key});
@@ -33,7 +34,21 @@ class MyCartScreen extends StatelessWidget {
             ),
             child: IconButton(
               icon: Icon(Icons.arrow_back_ios_new, color: Colors.black87),
-              onPressed: () => Get.back(),
+              onPressed: () {
+                // Check if we can navigate back
+                if (Navigator.canPop(context)) {
+                  Get.back();
+                } else {
+                  // If we can't go back, switch to home tab
+                  try {
+                    final NavigationController navController = Get.find<NavigationController>();
+                    navController.changeTab(0); // Switch to home tab
+                  } catch (e) {
+                    // If navigation controller not found, try going back anyway
+                    Get.back();
+                  }
+                }
+              },
             ),
           ),
         ),
@@ -190,7 +205,7 @@ class MyCartScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                 Text(
-                  item.name.toUpperCase(),
+                  item.name.replaceAll('"', '').toUpperCase(),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -320,7 +335,7 @@ class MyCartScreen extends StatelessWidget {
                 Get.dialog(
                   AlertDialog(
                     title: Text('Remove Item'),
-                    content: Text('Are you sure you want to remove ${item.name} from your cart?'),
+                    content: Text('Are you sure you want to remove ${item.name.replaceAll('"', '')} from your cart?'),
                     actions: [
                       TextButton(
                         onPressed: () => Get.back(),
@@ -332,7 +347,7 @@ class MyCartScreen extends StatelessWidget {
                           Get.back();
                           Get.snackbar(
                             'Removed',
-                            '${item.name} removed from cart',
+                            '${item.name.replaceAll('"', '')} removed from cart',
                             duration: Duration(seconds: 2),
                             backgroundColor: Colors.red[100],
                             colorText: Colors.red[800],

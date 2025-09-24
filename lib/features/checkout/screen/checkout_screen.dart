@@ -110,7 +110,7 @@ class CheckoutScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 16, color: Colors.grey[600]),
               ),
               Text(
-                '\$${cartController.totalPrice.toStringAsFixed(2)}',
+                '\$${cartController.totalPrice.ceil().toString()}',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
             ],
@@ -126,7 +126,7 @@ class CheckoutScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 ),
                 Text(
-                  '\$${checkoutController.deliveryFee.toStringAsFixed(2)}',
+                  '\$${checkoutController.deliveryFee.ceil().toString()}',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
               ],
@@ -136,6 +136,7 @@ class CheckoutScreen extends StatelessWidget {
           Obx(() {
             final checkoutController = Get.find<CheckoutController>();
             final total = cartController.totalPrice + checkoutController.deliveryFee;
+            final ceilingTotal = total.ceil();
             return Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -148,7 +149,7 @@ class CheckoutScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '\$${total.toStringAsFixed(2)}',
+                  '\$${ceilingTotal.toString()}',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -593,6 +594,7 @@ class CheckoutScreen extends StatelessWidget {
           children: [
             Obx(() {
               final total = cartController.totalPrice + checkoutController.deliveryFee;
+              final ceilingTotal = total.ceil();
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -607,7 +609,7 @@ class CheckoutScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '\$${total.toStringAsFixed(2)}',
+                        '\$${ceilingTotal.toString()}',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,

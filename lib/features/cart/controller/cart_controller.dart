@@ -19,6 +19,11 @@ class CartController extends GetxController {
   int get itemCount {
     return cartItems.fold(0, (sum, item) => sum + item.quantity);
   }
+  
+  // Check if item is in cart
+  bool isInCart(String productId) {
+    return cartItems.any((item) => item.id == productId);
+  }
 
   // Add item to cart
   void addToCart(HomeModel product, String selectedColor) {

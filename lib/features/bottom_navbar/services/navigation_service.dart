@@ -6,6 +6,7 @@ import 'package:home_haven/features/cart/my_cart_screen.dart';
 import 'package:home_haven/features/cart/controller/cart_controller.dart';
 import 'package:home_haven/features/home/presentation/screen/home_screen.dart';
 import 'package:home_haven/features/home/presentation/controller/home_controller.dart';
+import 'package:home_haven/features/wishlist/controller/wishlist_controller.dart';
 import 'package:home_haven/features/profile/profile_screen.dart';
 
 class GlobalNavigationWrapper extends StatelessWidget {
@@ -28,6 +29,7 @@ class GlobalNavigationWrapper extends StatelessWidget {
     // Initialize controllers
     Get.put(HomeController());
     Get.put(CartController());
+    Get.put(WishlistController());
 
     final pages = [HomeScreen(), MyCartScreen(), ProfileScreen()];
 
