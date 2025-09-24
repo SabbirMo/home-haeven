@@ -278,7 +278,277 @@ class HomeScreen extends StatelessWidget {
                             },
                           ),
                         ),
-                      )
+                      ),
+                      
+                      // All Products Section
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'All Products',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              Get.to(() => AllProductsScreen());
+                            },
+                            child: Text(
+                              "See More",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xff156651),
+                                decoration: TextDecoration.underline,
+                                decorationColor: Color(0xff156651),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // All Products Grid
+                      Obx(
+                        () => GridView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 0.75,
+                          ),
+                          itemCount: controller.filterItem.length > 6 ? 6 : controller.filterItem.length,
+                          itemBuilder: (context, index) {
+                            final item = controller.filterItem[index];
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Product Image with Discount Badge
+                                  Expanded(
+                                    flex: 3,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            Get.to(() => ProductDetailsScreen(product: item));
+                                          },
+                                          child: Container(
+                                            width: double.infinity,
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                                              child: Image.network(
+                                                item.image,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (context, error, stackTrace) {
+                                                  return Container(
+                                                    color: Colors.grey[200],
+                                                    child: Icon(Icons.chair, color: Colors.grey[400], size: 50),
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        // Discount Badge
+                                        if (item.offPrice.isNotEmpty)
+                                          Positioned(
+                                            top: 8,
+                                            left: 8,
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.red,
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                item.offPrice.replaceAll('"', ''),
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  
+                                  // Product Details
+                                  Expanded(
+                                    flex: 2,
+                                    child: Padding(
+                                      padding: EdgeInsets.all(12),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // Product Name
+                                          Text(
+                                            item.title.replaceAll('"', ''),
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.black87,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          SizedBox(height: 4),
+                                          
+                                          // Price Section
+                                          Row(
+                                            children: [
+                                              Text(
+                                                '৳${item.offerPrice.replaceAll('"', '')}',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: AppColors.primary,
+                                                ),
+                                              ),
+                                              if (item.regularPrice != item.offerPrice && item.regularPrice.isNotEmpty) ...[
+                                                SizedBox(width: 4),
+                                                Text(
+                                                  '৳${item.regularPrice.replaceAll('"', '')}',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey[600],
+                                                    decoration: TextDecoration.lineThrough,
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                          
+                                          // Rating
+                                          Row(
+                                            children: [
+                                              Icon(Icons.star, color: Colors.amber, size: 16),
+                                              SizedBox(width: 2),
+                                              Text(
+                                                item.rating.replaceAll('"', ''),
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey[600],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          
+                                          Spacer(),
+                                          
+                                          // Action Buttons
+                                          Row(
+                                            children: [
+                                              // Wishlist Button
+                                              Expanded(
+                                                child: GetBuilder<WishlistController>(
+                                                  builder: (wishlistController) {
+                                                    bool isWishlisted = wishlistController.isInWishlist(item.id);
+                                                    return GestureDetector(
+                                                      onTap: () {
+                                                        wishlistController.toggleWishlist(item);
+                                                      },
+                                                      child: Container(
+                                                        height: 32,
+                                                        decoration: BoxDecoration(
+                                                          color: isWishlisted ? AppColors.red.withOpacity(0.1) : Colors.grey[100],
+                                                          borderRadius: BorderRadius.circular(8),
+                                                          border: Border.all(
+                                                            color: isWishlisted ? AppColors.red : Colors.grey[300]!,
+                                                            width: 1,
+                                                          ),
+                                                        ),
+                                                        child: Center(
+                                                          child: Icon(
+                                                            isWishlisted ? Icons.favorite : Icons.favorite_border,
+                                                            color: isWishlisted ? AppColors.red : Colors.grey[600],
+                                                            size: 16,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                              SizedBox(width: 8),
+                                              // Add to Cart Button
+                                              Expanded(
+                                                flex: 2,
+                                                child: GetBuilder<CartController>(
+                                                  builder: (cartController) {
+                                                    bool isInCart = cartController.isInCart(item.id);
+                                                    
+                                                    return GestureDetector(
+                                                      onTap: () {
+                                                        if (!isInCart) {
+                                                          cartController.addToCart(item, 'Default');
+                                                        }
+                                                      },
+                                                      child: Container(
+                                                        height: 32,
+                                                        decoration: BoxDecoration(
+                                                          color: isInCart ? Colors.green : AppColors.primary,
+                                                          borderRadius: BorderRadius.circular(8),
+                                                        ),
+                                                        child: Center(
+                                                          child: Row(
+                                                            mainAxisAlignment: MainAxisAlignment.center,
+                                                            children: [
+                                                              Icon(
+                                                                isInCart ? Icons.check : Icons.shopping_cart_outlined,
+                                                                color: Colors.white,
+                                                                size: 14,
+                                                              ),
+                                                              SizedBox(width: 4),
+                                                              Text(
+                                                                isInCart ? 'Added' : 'Add',
+                                                                style: TextStyle(
+                                                                  color: Colors.white,
+                                                                  fontSize: 12,
+                                                                  fontWeight: FontWeight.w600,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     ],
                   ),
                 ),
