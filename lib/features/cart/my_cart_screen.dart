@@ -148,44 +148,47 @@ class MyCartScreen extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
+      child: Stack(
         children: [
-          // Product Image
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                item.image,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.chair,
-                      size: 40,
-                      color: Colors.grey[400],
-                    ),
-                  );
-                },
+          // Main content
+          Row(
+            children: [
+              // Product Image
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    item.image,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.chair,
+                          size: 40,
+                          color: Colors.grey[400],
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
-            ),
-          ),
-          SizedBox(width: 16),
-          
-          // Product Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              SizedBox(width: 16),
+              
+              // Product Details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                 Text(
                   item.name.toUpperCase(),
                   style: TextStyle(
@@ -200,7 +203,7 @@ class MyCartScreen extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      '\$${item.price.toStringAsFixed(2)}',
+                      '৳${item.price.toStringAsFixed(0)}',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -210,7 +213,7 @@ class MyCartScreen extends StatelessWidget {
                     SizedBox(width: 8),
                     if (item.originalPrice > item.price)
                       Text(
-                        '\$${item.originalPrice.toStringAsFixed(2)}',
+                        '৳${item.originalPrice.toStringAsFixed(0)}',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[500],
@@ -248,34 +251,10 @@ class MyCartScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 12),
                 
-                // Quantity Controls and Wishlist
+                // Quantity Controls
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    // Wishlist Button
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[300]!),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.favorite_border,
-                          color: Colors.grey[600],
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          Get.snackbar(
-                            'Added to Wishlist',
-                            '${item.name} added to your wishlist',
-                            duration: Duration(seconds: 2),
-                          );
-                        },
-                        padding: EdgeInsets.all(8),
-                        constraints: BoxConstraints(),
-                      ),
-                    ),
-                    
                     // Quantity Controls
                     Container(
                       decoration: BoxDecoration(
@@ -328,6 +307,53 @@ class MyCartScreen extends StatelessWidget {
               ],
             ),
           ),
+          ],
+          ),
+          
+          // Delete Button - Top Right
+          Positioned(
+            top: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: () {
+                // Show confirmation dialog
+                Get.dialog(
+                  AlertDialog(
+                    title: Text('Remove Item'),
+                    content: Text('Are you sure you want to remove ${item.name} from your cart?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Get.back(),
+                        child: Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          controller.removeFromCart(item.id, item.color);
+                          Get.back();
+                          Get.snackbar(
+                            'Removed',
+                            '${item.name} removed from cart',
+                            duration: Duration(seconds: 2),
+                            backgroundColor: Colors.red[100],
+                            colorText: Colors.red[800],
+                          );
+                        },
+                        child: Text('Remove', style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              child: Container(
+                padding: EdgeInsets.all(4),
+                child: Icon(
+                  Icons.close,
+                  color: Colors.grey[600],
+                  size: 16,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -362,7 +388,7 @@ class MyCartScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '\$${controller.totalPrice.toStringAsFixed(2)}',
+                  '৳${controller.totalPrice.toStringAsFixed(0)}',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -385,7 +411,7 @@ class MyCartScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '\$${controller.totalSavings.toStringAsFixed(2)}',
+                    '৳${controller.totalSavings.toStringAsFixed(0)}',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,

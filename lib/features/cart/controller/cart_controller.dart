@@ -32,12 +32,28 @@ class CartController extends GetxController {
       cartItems.refresh();
     } else {
       // Add new item
+      // Enhanced price parsing to handle different formats
+      String cleanOfferPrice = product.offerPrice.trim().replaceAll(RegExp(r'[^0-9.]'), '');
+      String cleanRegularPrice = product.regularPrice.trim().replaceAll(RegExp(r'[^0-9.]'), '');
+      
+      double parsedPrice = double.tryParse(cleanOfferPrice) ?? 0.0;
+      double parsedOriginalPrice = double.tryParse(cleanRegularPrice) ?? 0.0;
+      
+      print('Debug - Adding to cart:');
+      print('Product: ${product.title}');
+      print('Raw Offer Price: "${product.offerPrice}"');
+      print('Clean Offer Price: "$cleanOfferPrice"');
+      print('Raw Regular Price: "${product.regularPrice}"');
+      print('Clean Regular Price: "$cleanRegularPrice"');
+      print('Parsed Price: $parsedPrice');
+      print('Parsed Original Price: $parsedOriginalPrice');
+      
       CartModel newItem = CartModel(
         id: product.id,
         name: product.title,
         image: product.image,
-        price: double.tryParse(product.offerPrice.replaceAll('\$', '')) ?? 0.0,
-        originalPrice: double.tryParse(product.regularPrice.replaceAll('\$', '')) ?? 0.0,
+        price: parsedPrice,
+        originalPrice: parsedOriginalPrice,
         discountPercentage: product.offPrice,
         color: selectedColor,
       );
@@ -53,7 +69,17 @@ class CartController extends GetxController {
 
   // Remove item from cart
   void removeFromCart(String itemId, String color) {
+    String itemName = '';
+    int index = cartItems.indexWhere((item) => item.id == itemId && item.color == color);
+    if (index != -1) {
+      itemName = cartItems[index].name;
+    }
+    
     cartItems.removeWhere((item) => item.id == itemId && item.color == color);
+    
+    if (itemName.isNotEmpty) {
+      print('Removed from cart: $itemName');
+    }
   }
 
   // Update quantity

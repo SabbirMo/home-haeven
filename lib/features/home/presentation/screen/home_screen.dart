@@ -156,13 +156,22 @@ class HomeScreen extends StatelessWidget {
                                               ),
                                             ),
                                             Text(
-                                              item.offerPrice,
+                                              '৳${item.offerPrice}',
                                               style: TextStyle(
                                                 fontSize: 19,
                                                 fontWeight: FontWeight.w500,
+                                                color: AppColors.primary,
                                               ),
                                             ),
-                                            Text(item.regularPrice),
+                                            if (item.regularPrice != item.offerPrice && item.regularPrice.isNotEmpty)
+                                              Text(
+                                                '৳${item.regularPrice}',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey[600],
+                                                  decoration: TextDecoration.lineThrough,
+                                                ),
+                                              ),
                                             Row(
                                               children: [
                                                 Icon(Icons.star,
