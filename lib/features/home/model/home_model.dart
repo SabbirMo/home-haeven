@@ -7,6 +7,7 @@ class HomeModel {
   final String rating;
   final String offPrice;
   final String description;
+  final String category;
   final bool isActive;
 
   HomeModel({
@@ -18,6 +19,7 @@ class HomeModel {
     required this.rating,
     required this.offPrice,
     this.description = '',
+    this.category = 'Outdoor',
     this.isActive = true,
   });
 
@@ -31,6 +33,7 @@ class HomeModel {
       rating: json['rating'] ?? '0.0',
       offPrice: json['offPrice'] ?? '0',
       description: json['description'] ?? '',
+      category: json['category'] ?? 'Outdoor',
       isActive: json['isActive'] ?? true,
     );
   }
@@ -45,6 +48,7 @@ class HomeModel {
       'rating': rating,
       'offPrice': offPrice,
       'description': description,
+      'category': category,
       'isActive': isActive,
     };
   }

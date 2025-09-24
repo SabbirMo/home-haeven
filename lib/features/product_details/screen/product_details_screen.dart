@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:home_haven/core/assets/app_colors.dart';
 import 'package:home_haven/features/home/model/home_model.dart';
 import 'package:home_haven/features/onboarding/widget/custom_button.dart';
 import 'package:home_haven/features/cart/controller/cart_controller.dart';
@@ -30,7 +31,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
-    
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: Column(
@@ -112,7 +113,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             width: 44,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: const Color.fromARGB(48, 255, 255, 255),
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
@@ -200,7 +201,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                               widget.product.regularPrice.replaceAll('"', ''),
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.grey[500],
+                                color: Colors.grey[600],
                                 decoration: TextDecoration.lineThrough,
                               ),
                             ),
@@ -292,13 +293,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
+                      border: Border.all(color: AppColors.gradient),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: IconButton(
                       icon: Icon(
                         Icons.favorite_border,
-                        color: Colors.black87,
+                        color: AppColors.primary,
                         size: 24,
                       ),
                       onPressed: () {
@@ -361,6 +362,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           },
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            width: 170,
             decoration: BoxDecoration(
               border: Border.all(
                 color: isSelected ? Color(0xFF2E7D32) : Colors.grey[300]!,
