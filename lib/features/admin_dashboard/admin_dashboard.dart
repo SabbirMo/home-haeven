@@ -4,6 +4,9 @@ import 'package:home_haven/core/assets/app_colors.dart';
 import 'package:home_haven/features/home/model/home_model.dart';
 import 'package:get/get.dart';
 import 'admin_product_controller.dart';
+import 'package:home_haven/features/orders/screen/orders_management_screen.dart';
+import 'package:home_haven/features/orders/controller/orders_controller.dart';
+import 'package:home_haven/features/orders/model/order_model.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
@@ -39,6 +42,10 @@ class AdminDashboard extends StatelessWidget {
             _buildQuickActions(controller),
             SizedBox(height: 24),
 
+            // Orders Management Section
+            _buildOrdersManagementSection(),
+            SizedBox(height: 24),
+
             // Recent Products
             _buildRecentProducts(controller),
           ],
@@ -54,6 +61,149 @@ class AdminDashboard extends StatelessWidget {
           'Add Product',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
+      ),
+    );
+  }
+
+  Widget _buildOrdersManagementSection() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Orders Management',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    Get.to(() => OrdersManagementScreen());
+                  },
+                  icon: Icon(Icons.arrow_forward, size: 16),
+                  label: Text('View All'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            
+            // Orders Stats
+            GetBuilder<OrdersController>(
+              init: OrdersController(),
+              builder: (ordersController) {
+                return Row(
+                  children: [
+                    Expanded(
+                      child: _buildOrderStatCard(
+                        'Total Orders',
+                        ordersController.totalOrders.toString(),
+                        Icons.shopping_bag,
+                        Colors.blue,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: _buildOrderStatCard(
+                        'Pending',
+                        ordersController.pendingOrders.toString(),
+                        Icons.pending,
+                        Colors.orange,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: _buildOrderStatCard(
+                        'Approved',
+                        ordersController.approvedOrders.toString(),
+                        Icons.check_circle,
+                        Colors.green,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+            SizedBox(height: 16),
+            
+            // Quick Actions for Orders
+            Row(
+              children: [
+                Expanded(
+                  child: _buildActionButton(
+                    'Manage Orders',
+                    Icons.manage_search,
+                    Colors.purple,
+                    () => Get.to(() => OrdersManagementScreen()),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: _buildActionButton(
+                    'View Pending',
+                    Icons.pending_actions,
+                    Colors.orange,
+                    () {
+                      Get.to(() => OrdersManagementScreen());
+                      // Auto-filter to pending orders after navigation
+                      Future.delayed(Duration(milliseconds: 100), () {
+                        try {
+                          Get.find<OrdersController>().filterByStatus(OrderStatus.pending);
+                        } catch (e) {
+                          // Controller not found, ignore
+                        }
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrderStatCard(String title, String value, IconData icon, Color color) {
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.grey[600],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
@@ -763,4 +913,6 @@ class _ProductFormDialog extends StatelessWidget {
       size: 20,
     );
   }
+
+
 }
