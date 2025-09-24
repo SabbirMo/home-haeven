@@ -402,13 +402,7 @@ class MyCartScreen extends StatelessWidget {
             CustomButton(
               text: 'Proceed to Checkout',
               onTap: () {
-                Get.snackbar(
-                  'Checkout',
-                  'Proceeding to checkout with ${controller.itemCount} items',
-                  backgroundColor: AppColors.primary,
-                  colorText: Colors.white,
-                  duration: Duration(seconds: 2),
-                );
+                Get.toNamed('/checkout');
               },
             ),
           ],

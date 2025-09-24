@@ -12,6 +12,7 @@ import 'package:home_haven/features/bottom_navbar/screen/custom_bottom_navbar.da
 import 'package:home_haven/features/onboarding/binding/onboarding_binding.dart';
 import 'package:home_haven/features/onboarding/view/onboarding_screen.dart';
 import 'package:home_haven/features/splash/splash_screen.dart';
+import 'package:home_haven/features/checkout/screen/checkout_screen.dart';
 
 class AppRouters {
   static final appRouters = [
@@ -54,6 +55,10 @@ class AppRouters {
         product: Get.arguments,
       ),
     ),
+    GetPage(
+      name: RouterConstant.checkout,
+      page: () => CheckoutScreen(),
+    ),
   ];
 }
 
@@ -67,4 +72,5 @@ class RouterConstant {
   static final mainScreen = '/mainScreen';
   static final adminDashboard = '/adminDashboard';
   static final productDetails = '/productDetails';
+  static final checkout = '/checkout';
 }

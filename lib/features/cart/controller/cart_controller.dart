@@ -33,12 +33,12 @@ class CartController extends GetxController {
     } else {
       // Add new item
       CartModel newItem = CartModel(
-        id: product.id ?? '',
-        name: product.title ?? '',
-        image: product.image ?? '',
+        id: product.id,
+        name: product.title,
+        image: product.image,
         price: double.tryParse(product.offerPrice.replaceAll('\$', '')) ?? 0.0,
         originalPrice: double.tryParse(product.regularPrice.replaceAll('\$', '')) ?? 0.0,
-        discountPercentage: product.offPrice ?? '',
+        discountPercentage: product.offPrice,
         color: selectedColor,
       );
       cartItems.add(newItem);

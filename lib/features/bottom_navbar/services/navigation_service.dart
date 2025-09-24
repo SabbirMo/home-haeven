@@ -8,11 +8,22 @@ import 'package:home_haven/features/home/presentation/screen/home_screen.dart';
 import 'package:home_haven/features/home/presentation/controller/home_controller.dart';
 import 'package:home_haven/features/profile/profile_screen.dart';
 
-class CustomBottomNavbar extends StatelessWidget {
-  const CustomBottomNavbar({super.key});
+class GlobalNavigationWrapper extends StatelessWidget {
+  final Widget child;
+  final bool showBottomNav;
+  
+  const GlobalNavigationWrapper({
+    super.key,
+    required this.child,
+    this.showBottomNav = true,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (!showBottomNav) {
+      return child;
+    }
+
     final NavigationController controller = Get.put(NavigationController());
     // Initialize controllers
     Get.put(HomeController());
@@ -34,5 +45,23 @@ class CustomBottomNavbar extends StatelessWidget {
         extendBody: true,
       ),
     );
+  }
+}
+
+// Enhanced navigation service
+class NavigationService {
+  static void navigateToPage(Widget page, {bool showBottomNav = false}) {
+    if (showBottomNav) {
+      Get.to(() => GlobalNavigationWrapper(
+        child: page,
+        showBottomNav: true,
+      ));
+    } else {
+      Get.to(() => page);
+    }
+  }
+  
+  static void navigateToPageWithBottomNav(Widget page) {
+    navigateToPage(page, showBottomNav: true);
   }
 }

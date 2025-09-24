@@ -3,8 +3,9 @@ import 'package:get/get.dart';
 import 'package:home_haven/core/assets/app_colors.dart';
 import 'package:home_haven/features/carouselslider/presentation/screen/carousel_slider.dart';
 import 'package:home_haven/features/product_details/screen/product_details_screen.dart';
+import 'package:home_haven/features/cart/controller/cart_controller.dart';
+import 'package:home_haven/features/wishlist/controller/wishlist_controller.dart';
 import '../controller/home_controller.dart';
-import '../../../home/model/home_model.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -83,93 +84,175 @@ class HomeScreen extends StatelessWidget {
                       ),
                       Obx(
                         () => SizedBox(
-                          height: 270,
+                          height: 320,
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             itemCount: controller.filterItem.length,
                             itemBuilder: (_, index) {
                               final item = controller.filterItem[index];
-                              return GestureDetector(
-                                onTap: () {
-                                  Get.to(() =>
-                                      ProductDetailsScreen(product: item));
-                                },
-                                child: Container(
-                                  width: 170,
-                                  margin: EdgeInsets.all(8),
-                                  padding: EdgeInsets.all(15),
-                                  decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(13),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          blurRadius: 2,
-                                        ),
-                                      ]),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Stack(
-                                        children: [
-                                          Align(
-                                            child: Image.network(
-                                              item.image,
-                                              width: 110,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          ),
-                                          Positioned(
-                                            bottom: 5,
-                                            child: Container(
-                                              width: 65,
-                                              padding: EdgeInsets.all(5),
-                                              decoration: BoxDecoration(
-                                                color: AppColors.red,
-                                                borderRadius: BorderRadius.only(
-                                                  topLeft: Radius.circular(14),
-                                                  bottomRight:
-                                                      Radius.circular(14),
+                              return Container(
+                                width: 170,
+                                margin: EdgeInsets.all(8),
+                                padding: EdgeInsets.all(15),
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(13),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        blurRadius: 2,
+                                      ),
+                                    ]),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                      GestureDetector(
+                                        onTap: () {
+                                          Get.to(() =>
+                                              ProductDetailsScreen(product: item));
+                                        },
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Stack(
+                                              children: [
+                                                Align(
+                                                  child: Image.network(
+                                                    item.image,
+                                                    width: 110,
+                                                    fit: BoxFit.cover,
+                                                  ),
                                                 ),
-                                              ),
-                                              child: Center(
-                                                child: Text(
-                                                  item.offPrice,
-                                                  style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 11),
-                                                ),
+                                                Positioned(
+                                                  bottom: 5,
+                                                  child: Container(
+                                                    width: 65,
+                                                    padding: EdgeInsets.all(5),
+                                                    decoration: BoxDecoration(
+                                                      color: AppColors.red,
+                                                      borderRadius: BorderRadius.only(
+                                                        topLeft: Radius.circular(14),
+                                                        bottomRight:
+                                                            Radius.circular(14),
+                                                      ),
+                                                    ),
+                                                    child: Center(
+                                                      child: Text(
+                                                        item.offPrice,
+                                                        style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 11),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                            SizedBox(height: 3),
+                                            Text(
+                                              item.title,
+                                              style: TextStyle(
+                                                fontSize: 16,
                                               ),
                                             ),
-                                          )
-                                        ],
-                                      ),
-                                      SizedBox(height: 3),
-                                      Text(
-                                        item.title,
-                                        style: TextStyle(
-                                          fontSize: 16,
+                                            Text(
+                                              item.offerPrice,
+                                              style: TextStyle(
+                                                fontSize: 19,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            Text(item.regularPrice),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.star,
+                                                    color: Colors.amberAccent),
+                                                Text(item.rating),
+                                              ],
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      Text(
-                                        item.offerPrice,
-                                        style: TextStyle(
-                                          fontSize: 19,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      Text(item.regularPrice),
+                                      SizedBox(height: 8),
+                                      // Action Buttons Row
                                       Row(
                                         children: [
-                                          Icon(Icons.star,
-                                              color: Colors.amberAccent),
-                                          Text(item.rating),
+                                          // Wishlist Button
+                                          Expanded(
+                                            child: GetBuilder<WishlistController>(
+                                              init: WishlistController(),
+                                              builder: (wishlistController) {
+                                                bool isWishlisted = wishlistController.isInWishlist(item.id);
+                                                return GestureDetector(
+                                                  onTap: () {
+                                                    wishlistController.toggleWishlist(item);
+                                                  },
+                                                  child: Container(
+                                                    height: 32,
+                                                    decoration: BoxDecoration(
+                                                      color: isWishlisted ? AppColors.red.withOpacity(0.1) : Colors.grey[100],
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      border: Border.all(
+                                                        color: isWishlisted ? AppColors.red : Colors.grey[300]!,
+                                                        width: 1,
+                                                      ),
+                                                    ),
+                                                    child: Center(
+                                                      child: Icon(
+                                                        isWishlisted ? Icons.favorite : Icons.favorite_border,
+                                                        color: isWishlisted ? AppColors.red : Colors.grey[600],
+                                                        size: 16,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                          SizedBox(width: 8),
+                                          // Add to Cart Button
+                                          Expanded(
+                                            flex: 2,
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                final cartController = Get.find<CartController>();
+                                                cartController.addToCart(item, 'Default');
+                                              },
+                                              child: Container(
+                                                height: 32,
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.primary,
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                child: Center(
+                                                  child: Row(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.shopping_cart_outlined,
+                                                        color: Colors.white,
+                                                        size: 14,
+                                                      ),
+                                                      SizedBox(width: 4),
+                                                      Text(
+                                                        'Add',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 12,
+                                                          fontWeight: FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
                                         ],
-                                      )
+                                      ),
                                     ],
                                   ),
-                                ),
-                              );
+                                );
                             },
                           ),
                         ),

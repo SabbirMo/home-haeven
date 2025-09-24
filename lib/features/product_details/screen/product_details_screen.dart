@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:home_haven/core/assets/app_colors.dart';
 import 'package:home_haven/features/home/model/home_model.dart';
 import 'package:home_haven/features/onboarding/widget/custom_button.dart';
 import 'package:home_haven/features/cart/controller/cart_controller.dart';
@@ -31,6 +29,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
+    
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: Column(
@@ -41,6 +41,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  SizedBox(height: topPadding + 10), // Safe area padding
                   // Product Image Section
                   Container(
                     height: 400,
@@ -100,6 +101,37 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                   ),
                                 );
                               },
+                            ),
+                          ),
+                        ),
+                        // Back Button
+                        Positioned(
+                          top: 16,
+                          left: 16,
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              onPressed: () {
+                                Get.back();
+                              },
+                              icon: Icon(
+                                Icons.arrow_back_ios_new,
+                                color: Colors.black87,
+                                size: 20,
+                              ),
+                              padding: EdgeInsets.zero,
                             ),
                           ),
                         ),
