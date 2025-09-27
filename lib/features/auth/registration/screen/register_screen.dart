@@ -30,7 +30,7 @@ class RegisterScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    "Fill in your details below to get started on a seamless shopping experience.",
+                    "Fill in your details below to create your customer account and start shopping.",
                     style: TextStyle(
                       color: AppColors.neutral70,
                       fontSize: 16,
@@ -79,29 +79,6 @@ class RegisterScreen extends StatelessWidget {
                     obscureText: controller.hidenConfirmPassword,
                   ),
                   const SizedBox(height: 30),
-                  Row(
-                    children: [
-                      Text(
-                        "Role: ",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w500),
-                      ),
-                      SizedBox(width: 10),
-                      DropdownButton<String>(
-                        value: controller.selectedRole,
-                        items: [
-                          DropdownMenuItem(
-                              value: "customer", child: Text("Customer")),
-                          DropdownMenuItem(
-                              value: "admin", child: Text("Admin")),
-                        ],
-                        onChanged: (value) {
-                          if (value != null) controller.selectedRole = value;
-                        },
-                      )
-                    ],
-                  ),
-                  const SizedBox(height: 30),
                   controller.isLoading
                       ? Center(
                           child: CircularProgressIndicator(),
@@ -126,7 +103,7 @@ class RegisterScreen extends StatelessWidget {
                               name: nameController.text.trim(),
                               email: emailController.text.trim(),
                               password: passwordController.text.trim(),
-                              role: controller.selectedRole,
+                              role: "customer", // Always register as customer
                             );
                           },
                         ),

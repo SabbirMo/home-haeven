@@ -17,8 +17,6 @@ class RegisterController extends GetxController {
 
   String adminEmail = "sabbirsamolla51@gmail.com";
 
-  String selectedRole = "customer";
-
   bool isLoading = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -31,9 +29,10 @@ class RegisterController extends GetxController {
     required String role,
   }) async {
     try {
-      if (role == "admin" && email.trim().toLowerCase() != adminEmail) {
-        Get.snackbar("Error", "Only $adminEmail can be registered as admin!");
-        return;
+      // Check if this is the admin email and set role accordingly
+      String userRole = "customer"; // Default role
+      if (email.trim().toLowerCase() == adminEmail.toLowerCase()) {
+        userRole = "admin";
       }
 
       isLoading = true;
@@ -55,7 +54,7 @@ class RegisterController extends GetxController {
         'uid': user!.uid,
         'name': name,
         'email': email,
-        'role': role,
+        'role': userRole, // Use the determined role
         'createAt': DateTime.now(),
       });
     } on FirebaseAuthException catch (e) {

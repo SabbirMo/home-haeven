@@ -29,7 +29,7 @@ class CarouselSliderScreen extends StatelessWidget {
               },
               options: CarouselOptions(
                 autoPlay: true,
-                height: 210,
+                height: 180,
                 viewportFraction: 1,
                 onPageChanged: (index, reason) {
                   controller.onPageChange(index);

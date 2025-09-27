@@ -25,6 +25,10 @@ class AllProductsScreen extends StatelessWidget {
 
     // Selected category for filtering
     final selectedCategory = 'All'.obs;
+    
+    // Search functionality
+    final searchQuery = ''.obs;
+    final TextEditingController searchController = TextEditingController();
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -45,12 +49,7 @@ class AllProductsScreen extends StatelessWidget {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: Colors.black87),
-            onPressed: () {
-              // TODO: Implement search functionality
-            },
-          ),
+          // Search functionality is now in the body
         ],
       ),
       body: SafeArea(
@@ -63,50 +62,175 @@ class AllProductsScreen extends StatelessWidget {
             );
           }
 
-          // Filter products based on selected category
-          final filteredProducts = selectedCategory.value == 'All'
+          // Filter products based on selected category and search query
+          var filteredProducts = selectedCategory.value == 'All'
               ? controller.allItem
               : controller.allItem
                   .where((item) =>
                       item.category.toLowerCase() ==
                       selectedCategory.value.toLowerCase())
                   .toList();
+          
+          // Apply search filter if search query is not empty
+          if (searchQuery.value.isNotEmpty) {
+            filteredProducts = filteredProducts.where((item) {
+              return item.title.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
+                     item.description.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
+                     item.category.toLowerCase().contains(searchQuery.value.toLowerCase());
+            }).toList();
+          }
 
           return Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Products count
-                Text(
-                  '${filteredProducts.length} Products Found',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
+                // Search Bar
+                Container(
+                  margin: EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
                   ),
+                  child: Obx(() => TextField(
+                    controller: searchController,
+                    onChanged: (value) {
+                      searchQuery.value = value;
+                    },
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      border: InputBorder.none,
+                      hintText: "Search products...",
+                      hintStyle: TextStyle(color: Colors.grey[500]),
+                      prefixIcon: Icon(Icons.search_outlined, color: Colors.grey[500]),
+                      suffixIcon: searchQuery.value.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(Icons.clear, color: Colors.grey[500]),
+                              onPressed: () {
+                                searchController.clear();
+                                searchQuery.value = '';
+                              },
+                            )
+                          : null,
+                    ),
+                  )),
                 ),
+                
+                // Products count - make it reactive to both filters
+                Obx(() {
+                  // Recalculate filtered products for display count
+                  var countProducts = selectedCategory.value == 'All'
+                      ? controller.allItem
+                      : controller.allItem
+                          .where((item) =>
+                              item.category.toLowerCase() ==
+                              selectedCategory.value.toLowerCase())
+                          .toList();
+                  
+                  if (searchQuery.value.isNotEmpty) {
+                    countProducts = countProducts.where((item) {
+                      return item.title.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
+                             item.description.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
+                             item.category.toLowerCase().contains(searchQuery.value.toLowerCase());
+                    }).toList();
+                  }
+                  
+                  return Text(
+                    searchQuery.value.isNotEmpty 
+                        ? 'Search Results: ${countProducts.length} products found'
+                        : '${countProducts.length} Products Found',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  );
+                }),
                 SizedBox(height: 16),
 
                 // Category Filter
                 _buildCategoryFilter(selectedCategory),
                 SizedBox(height: 16),
 
-                // Products Grid
+                // Products Grid - make it reactive to both filters
                 Expanded(
-                  child: GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.65,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                    ),
-                    itemCount: filteredProducts.length,
-                    itemBuilder: (context, index) {
-                      final item = filteredProducts[index];
-                      return _buildProductCard(item);
-                    },
-                  ),
+                  child: Obx(() {
+                    // Recalculate filtered products for grid display
+                    var gridProducts = selectedCategory.value == 'All'
+                        ? controller.allItem
+                        : controller.allItem
+                            .where((item) =>
+                                item.category.toLowerCase() ==
+                                selectedCategory.value.toLowerCase())
+                            .toList();
+                    
+                    if (searchQuery.value.isNotEmpty) {
+                      gridProducts = gridProducts.where((item) {
+                        return item.title.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
+                               item.description.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
+                               item.category.toLowerCase().contains(searchQuery.value.toLowerCase());
+                      }).toList();
+                    }
+                    
+                    if (gridProducts.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              searchQuery.value.isNotEmpty ? Icons.search_off : Icons.inventory_2_outlined,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              searchQuery.value.isNotEmpty 
+                                  ? 'No products found for "${searchQuery.value}"'
+                                  : 'No products found in ${selectedCategory.value} category',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            if (searchQuery.value.isNotEmpty) ...[
+                              SizedBox(height: 8),
+                              Text(
+                                'Try different keywords or browse other categories',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[500],
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    }
+                    
+                    return GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.65,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                      ),
+                      itemCount: gridProducts.length,
+                      itemBuilder: (context, index) {
+                        final item = gridProducts[index];
+                        return _buildProductCard(item);
+                      },
+                    );
+                  }),
                 ),
               ],
             ),

@@ -5,6 +5,7 @@ import '../../../home/model/home_model.dart';
 class HomeController extends GetxController {
   var allItem = <HomeModel>[].obs;
   var filterItem = <HomeModel>[].obs;
+  var searchQuery = ''.obs; // Add search query tracker
 
   final String mainDocId = "JbmCjuFy2CF90gyYW4tC";
 
@@ -74,12 +75,16 @@ class HomeController extends GetxController {
 
   /// Search filter
   void searchProduct(String query) {
+    searchQuery.value = query; // Track current search query
     if (query.isEmpty) {
       filterItem.value = allItem;
     } else {
       filterItem.value = allItem.where((item) {
-        return item.title.toLowerCase().contains(query.toLowerCase());
+        return item.title.toLowerCase().contains(query.toLowerCase()) ||
+            item.description.toLowerCase().contains(query.toLowerCase()) ||
+            item.category.toLowerCase().contains(query.toLowerCase());
       }).toList();
     }
+    print('Search results: ${filterItem.length} products found for "$query"');
   }
 }
