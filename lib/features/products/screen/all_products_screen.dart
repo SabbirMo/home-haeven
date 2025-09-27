@@ -25,7 +25,7 @@ class AllProductsScreen extends StatelessWidget {
 
     // Selected category for filtering
     final selectedCategory = 'All'.obs;
-    
+
     // Search functionality
     final searchQuery = ''.obs;
     final TextEditingController searchController = TextEditingController();
@@ -70,13 +70,19 @@ class AllProductsScreen extends StatelessWidget {
                       item.category.toLowerCase() ==
                       selectedCategory.value.toLowerCase())
                   .toList();
-          
+
           // Apply search filter if search query is not empty
           if (searchQuery.value.isNotEmpty) {
             filteredProducts = filteredProducts.where((item) {
-              return item.title.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
-                     item.description.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
-                     item.category.toLowerCase().contains(searchQuery.value.toLowerCase());
+              return item.title
+                      .toLowerCase()
+                      .contains(searchQuery.value.toLowerCase()) ||
+                  item.description
+                      .toLowerCase()
+                      .contains(searchQuery.value.toLowerCase()) ||
+                  item.category
+                      .toLowerCase()
+                      .contains(searchQuery.value.toLowerCase());
             }).toList();
           }
 
@@ -100,29 +106,32 @@ class AllProductsScreen extends StatelessWidget {
                     ],
                   ),
                   child: Obx(() => TextField(
-                    controller: searchController,
-                    onChanged: (value) {
-                      searchQuery.value = value;
-                    },
-                    decoration: InputDecoration(
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      border: InputBorder.none,
-                      hintText: "Search products...",
-                      hintStyle: TextStyle(color: Colors.grey[500]),
-                      prefixIcon: Icon(Icons.search_outlined, color: Colors.grey[500]),
-                      suffixIcon: searchQuery.value.isNotEmpty
-                          ? IconButton(
-                              icon: Icon(Icons.clear, color: Colors.grey[500]),
-                              onPressed: () {
-                                searchController.clear();
-                                searchQuery.value = '';
-                              },
-                            )
-                          : null,
-                    ),
-                  )),
+                        controller: searchController,
+                        onChanged: (value) {
+                          searchQuery.value = value;
+                        },
+                        decoration: InputDecoration(
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          border: InputBorder.none,
+                          hintText: "Search products...",
+                          hintStyle: TextStyle(color: Colors.grey[500]),
+                          prefixIcon: Icon(Icons.search_outlined,
+                              color: Colors.grey[500]),
+                          suffixIcon: searchQuery.value.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(Icons.clear,
+                                      color: Colors.grey[500]),
+                                  onPressed: () {
+                                    searchController.clear();
+                                    searchQuery.value = '';
+                                  },
+                                )
+                              : null,
+                        ),
+                      )),
                 ),
-                
+
                 // Products count - make it reactive to both filters
                 Obx(() {
                   // Recalculate filtered products for display count
@@ -133,17 +142,23 @@ class AllProductsScreen extends StatelessWidget {
                               item.category.toLowerCase() ==
                               selectedCategory.value.toLowerCase())
                           .toList();
-                  
+
                   if (searchQuery.value.isNotEmpty) {
                     countProducts = countProducts.where((item) {
-                      return item.title.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
-                             item.description.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
-                             item.category.toLowerCase().contains(searchQuery.value.toLowerCase());
+                      return item.title
+                              .toLowerCase()
+                              .contains(searchQuery.value.toLowerCase()) ||
+                          item.description
+                              .toLowerCase()
+                              .contains(searchQuery.value.toLowerCase()) ||
+                          item.category
+                              .toLowerCase()
+                              .contains(searchQuery.value.toLowerCase());
                     }).toList();
                   }
-                  
+
                   return Text(
-                    searchQuery.value.isNotEmpty 
+                    searchQuery.value.isNotEmpty
                         ? 'Search Results: ${countProducts.length} products found'
                         : '${countProducts.length} Products Found',
                     style: TextStyle(
@@ -170,28 +185,36 @@ class AllProductsScreen extends StatelessWidget {
                                 item.category.toLowerCase() ==
                                 selectedCategory.value.toLowerCase())
                             .toList();
-                    
+
                     if (searchQuery.value.isNotEmpty) {
                       gridProducts = gridProducts.where((item) {
-                        return item.title.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
-                               item.description.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
-                               item.category.toLowerCase().contains(searchQuery.value.toLowerCase());
+                        return item.title
+                                .toLowerCase()
+                                .contains(searchQuery.value.toLowerCase()) ||
+                            item.description
+                                .toLowerCase()
+                                .contains(searchQuery.value.toLowerCase()) ||
+                            item.category
+                                .toLowerCase()
+                                .contains(searchQuery.value.toLowerCase());
                       }).toList();
                     }
-                    
+
                     if (gridProducts.isEmpty) {
                       return Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              searchQuery.value.isNotEmpty ? Icons.search_off : Icons.inventory_2_outlined,
+                              searchQuery.value.isNotEmpty
+                                  ? Icons.search_off
+                                  : Icons.inventory_2_outlined,
                               size: 64,
                               color: Colors.grey[400],
                             ),
                             SizedBox(height: 16),
                             Text(
-                              searchQuery.value.isNotEmpty 
+                              searchQuery.value.isNotEmpty
                                   ? 'No products found for "${searchQuery.value}"'
                                   : 'No products found in ${selectedCategory.value} category',
                               style: TextStyle(
@@ -216,7 +239,7 @@ class AllProductsScreen extends StatelessWidget {
                         ),
                       );
                     }
-                    
+
                     return GridView.builder(
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
