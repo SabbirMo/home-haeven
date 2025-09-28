@@ -23,6 +23,11 @@ class OutdoorProductsScreen extends StatelessWidget {
     Get.put(WishlistController());
     Get.put(CartController());
 
+    // Search state variables
+    final searchQuery = ''.obs;
+    final isSearching = false.obs;
+    final searchController = TextEditingController();
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -42,20 +47,35 @@ class OutdoorProductsScreen extends StatelessWidget {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: Colors.black87),
+          Obx(() => IconButton(
+            icon: Icon(
+              isSearching.value ? Icons.close : Icons.search, 
+              color: Colors.black87
+            ),
             onPressed: () {
-              // TODO: Implement search functionality
+              isSearching.toggle();
+              if (!isSearching.value) {
+                searchQuery.value = '';
+                searchController.clear();
+              }
             },
-          ),
+          )),
         ],
       ),
       body: SafeArea(
         child: Obx(() {
           // Filter outdoor products
-          final outdoorProducts = controller.allItem
+          var outdoorProducts = controller.allItem
               .where((product) => product.category.toLowerCase() == 'outdoor')
               .toList();
+
+          // Apply search filter
+          if (searchQuery.value.isNotEmpty) {
+            outdoorProducts = outdoorProducts
+                .where((item) =>
+                    item.title.toLowerCase().contains(searchQuery.value.toLowerCase()))
+                .toList();
+          }
 
           if (controller.allItem.isEmpty) {
             return Center(
@@ -130,6 +150,35 @@ class OutdoorProductsScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 16),
 
+                // Search Bar
+                Obx(() => isSearching.value 
+                    ? Container(
+                        margin: EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: TextField(
+                          controller: searchController,
+                          onChanged: (value) => searchQuery.value = value,
+                          decoration: InputDecoration(
+                            hintText: 'Search outdoor products...',
+                            prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          ),
+                          autofocus: true,
+                        ),
+                      )
+                    : SizedBox.shrink()),
+
                 // Products count
                 Text(
                   '${outdoorProducts.length} Outdoor Products Found',
@@ -141,21 +190,23 @@ class OutdoorProductsScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 16),
 
-                // Products Grid
+                // Products Grid or No Results
                 Expanded(
-                  child: GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.6,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                    ),
-                    itemCount: outdoorProducts.length,
-                    itemBuilder: (context, index) {
-                      final item = outdoorProducts[index];
-                      return _buildProductCard(item);
-                    },
-                  ),
+                  child: outdoorProducts.isEmpty && searchQuery.value.isNotEmpty
+                      ? _buildNoResultsFound()
+                      : GridView.builder(
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.6,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                          itemCount: outdoorProducts.length,
+                          itemBuilder: (context, index) {
+                            final item = outdoorProducts[index];
+                            return _buildProductCard(item);
+                          },
+                        ),
                 ),
               ],
             ),
@@ -397,6 +448,40 @@ class OutdoorProductsScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // No Results Found Widget
+  Widget _buildNoResultsFound() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.search_off,
+            size: 64,
+            color: Colors.grey[400],
+          ),
+          SizedBox(height: 16),
+          Text(
+            'No Outdoor Products Found',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Try adjusting your search terms\nor browse our other categories',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+          ),
+        ],
       ),
     );
   }

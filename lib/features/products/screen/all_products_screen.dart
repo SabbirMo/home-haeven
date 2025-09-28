@@ -23,8 +23,11 @@ class AllProductsScreen extends StatelessWidget {
     Get.put(WishlistController());
     Get.put(CartController());
 
-    // Selected category for filtering
+    // Selected category for filtering and search
     final selectedCategory = 'All'.obs;
+    final searchQuery = ''.obs;
+    final isSearching = false.obs;
+    final searchController = TextEditingController();
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -45,12 +48,19 @@ class AllProductsScreen extends StatelessWidget {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: Colors.black87),
+          Obx(() => IconButton(
+            icon: Icon(
+              isSearching.value ? Icons.close : Icons.search, 
+              color: Colors.black87
+            ),
             onPressed: () {
-              // TODO: Implement search functionality
+              isSearching.toggle();
+              if (!isSearching.value) {
+                searchQuery.value = '';
+                searchController.clear();
+              }
             },
-          ),
+          )),
         ],
       ),
       body: SafeArea(
@@ -63,8 +73,8 @@ class AllProductsScreen extends StatelessWidget {
             );
           }
 
-          // Filter products based on selected category
-          final filteredProducts = selectedCategory.value == 'All'
+          // Filter products based on selected category and search query
+          var filteredProducts = selectedCategory.value == 'All'
               ? controller.allItem
               : controller.allItem
                   .where((item) =>
@@ -72,11 +82,49 @@ class AllProductsScreen extends StatelessWidget {
                       selectedCategory.value.toLowerCase())
                   .toList();
 
+          // Apply search filter
+          if (searchQuery.value.isNotEmpty) {
+            filteredProducts = filteredProducts
+                .where((item) =>
+                    item.title.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
+                    item.category.toLowerCase().contains(searchQuery.value.toLowerCase()))
+                .toList();
+          }
+
           return Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Search Bar
+                Obx(() => isSearching.value 
+                    ? Container(
+                        margin: EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: TextField(
+                          controller: searchController,
+                          onChanged: (value) => searchQuery.value = value,
+                          decoration: InputDecoration(
+                            hintText: 'Search products...',
+                            prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          ),
+                          autofocus: true,
+                        ),
+                      )
+                    : SizedBox.shrink()),
+
                 // Products count
                 Text(
                   '${filteredProducts.length} Products Found',
@@ -88,25 +136,33 @@ class AllProductsScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 16),
 
-                // Category Filter
-                _buildCategoryFilter(selectedCategory),
-                SizedBox(height: 16),
+                // Category Filter (hide when searching)
+                Obx(() => !isSearching.value 
+                    ? Column(
+                        children: [
+                          _buildCategoryFilter(selectedCategory),
+                          SizedBox(height: 16),
+                        ],
+                      )
+                    : SizedBox.shrink()),
 
-                // Products Grid
+                // Products Grid or No Results
                 Expanded(
-                  child: GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.65,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                    ),
-                    itemCount: filteredProducts.length,
-                    itemBuilder: (context, index) {
-                      final item = filteredProducts[index];
-                      return _buildProductCard(item);
-                    },
-                  ),
+                  child: filteredProducts.isEmpty && searchQuery.value.isNotEmpty
+                      ? _buildNoResultsFound()
+                      : GridView.builder(
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.65,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                          itemCount: filteredProducts.length,
+                          itemBuilder: (context, index) {
+                            final item = filteredProducts[index];
+                            return _buildProductCard(item);
+                          },
+                        ),
                 ),
               ],
             ),
@@ -140,57 +196,116 @@ class AllProductsScreen extends StatelessWidget {
             Expanded(
               child: Stack(
                 children: [
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(16)),
-                      color: Colors.grey[100],
-                    ),
-                    child: ClipRRect(
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(16)),
-                      child: Image.network(
-                        item.image,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(16)),
-                            ),
-                            child: Center(
-                              child: Icon(
-                                Icons.chair,
-                                size: 50,
-                                color: Colors.grey[400],
-                              ),
-                            ),
-                          );
-                        },
+                  // Clean Image Container
+                  GestureDetector(
+                    onTap: () {
+                      Get.to(() => ProductDetailsScreen(product: item));
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                        color: Colors.grey[50],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                        child: Container(
+                          width: double.infinity,
+                          height: double.infinity,
+                          child: Image.network(
+                            item.image,
+                            fit: BoxFit.contain,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                width: double.infinity,
+                                height: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                                ),
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.primary,
+                                    ),
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                width: double.infinity,
+                                height: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.chair_outlined,
+                                      size: 40,
+                                      color: Colors.grey[400],
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      'No Image',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.grey[500],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                  // Discount Badge - only show if offPrice exists
+                  // Discount Badge - Enhanced Design
                   if (item.offPrice != null && item.offPrice!.isNotEmpty)
                     Positioned(
-                      top: 8,
-                      left: 8,
+                      top: 12,
+                      left: 12,
                       child: Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppColors.red,
+                          gradient: LinearGradient(
+                            colors: [Colors.red.shade400, Colors.red.shade600],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                           borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.red.withOpacity(0.3),
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Text(
                           item.offPrice!.replaceAll('"', ''),
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withOpacity(0.3),
+                                offset: Offset(0, 1),
+                                blurRadius: 2,
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -470,5 +585,39 @@ class AllProductsScreen extends StatelessWidget {
       default:
         return Colors.grey;
     }
+  }
+
+  // No Results Found Widget
+  Widget _buildNoResultsFound() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.search_off,
+            size: 64,
+            color: Colors.grey[400],
+          ),
+          SizedBox(height: 16),
+          Text(
+            'No Products Found',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Try adjusting your search terms\nor browse our categories',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
