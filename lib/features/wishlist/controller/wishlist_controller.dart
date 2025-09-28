@@ -45,6 +45,7 @@ class WishlistController extends GetxController {
     } else {
       addToWishlist(product);
     }
+    update(); // Force update for GetBuilder widgets
   }
 
   // Clear all wishlist items

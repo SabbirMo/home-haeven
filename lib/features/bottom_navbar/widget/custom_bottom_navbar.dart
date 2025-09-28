@@ -46,7 +46,8 @@ class CustomNavbar extends StatelessWidget {
     );
   }
 
-  Widget _navItem(String iconPath, String label, int index, IconData fallbackIcon) {
+  Widget _navItem(
+      String iconPath, String label, int index, IconData fallbackIcon) {
     final isSelected = index == currentIndex;
     return GestureDetector(
       onTap: () => onTap(index),
@@ -55,7 +56,9 @@ class CustomNavbar extends StatelessWidget {
         duration: Duration(milliseconds: 200),
         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+          color: isSelected
+              ? AppColors.primary.withOpacity(0.1)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Column(
@@ -108,9 +111,9 @@ class CustomNavbar extends StatelessWidget {
     return Obx(() {
       final cartController = Get.find<CartController>();
       final itemCount = cartController.itemCount;
-      
+
       if (itemCount == 0) return SizedBox.shrink();
-      
+
       return Positioned(
         right: -2,
         top: -2,
