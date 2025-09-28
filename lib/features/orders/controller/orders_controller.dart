@@ -5,7 +5,7 @@ import 'package:home_haven/features/orders/model/order_model.dart';
 
 class OrdersController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   var orders = <OrderModel>[].obs;
   var isLoading = false.obs;
   var selectedStatus = OrderStatus.pending.obs;
@@ -19,7 +19,7 @@ class OrdersController extends GetxController {
   Future<void> fetchOrders() async {
     try {
       isLoading.value = true;
-      
+
       QuerySnapshot querySnapshot = await _firestore
           .collection('orders')
           .orderBy('orderDate', descending: true)
@@ -43,19 +43,35 @@ class OrdersController extends GetxController {
     }
   }
 
-  Future<void> updateOrderStatus(String orderId, OrderStatus newStatus, {String? adminNotes}) async {
+  Future<void> updateOrderStatus(String orderId, OrderStatus newStatus,
+      {String? adminNotes}) async {
     try {
       isLoading.value = true;
+      print('\n🔄 UPDATING ORDER STATUS');
+      print('📋 Order ID: $orderId');
+      print('🏷️ New Status: ${newStatus.displayName}');
+      print('📝 Admin Notes: ${adminNotes ?? 'None'}');
 
       Map<String, dynamic> updateData = {
         'status': newStatus.toString().split('.').last,
         'adminNotes': adminNotes,
       };
 
+      // Add timestamp for status changes
+      String currentTime = DateTime.now().toIso8601String();
       if (newStatus == OrderStatus.approved) {
-        updateData['approvedDate'] = DateTime.now().toIso8601String();
+        updateData['approvedDate'] = currentTime;
+        updateData['processingStarted'] = currentTime;
+      } else if (newStatus == OrderStatus.processing) {
+        updateData['processingDate'] = currentTime;
+      } else if (newStatus == OrderStatus.shipped) {
+        updateData['shippedDate'] = currentTime;
+        updateData['estimatedDelivery'] =
+            DateTime.now().add(Duration(days: 3)).toIso8601String();
+      } else if (newStatus == OrderStatus.delivered) {
+        updateData['deliveredDate'] = currentTime;
       } else if (newStatus == OrderStatus.cancelled) {
-        updateData['cancelledDate'] = DateTime.now().toIso8601String();
+        updateData['cancelledDate'] = currentTime;
       }
 
       await _firestore.collection('orders').doc(orderId).update(updateData);
@@ -66,41 +82,74 @@ class OrdersController extends GetxController {
         OrderModel updatedOrder = orders[orderIndex].copyWith(
           status: newStatus,
           adminNotes: adminNotes,
-          approvedDate: newStatus == OrderStatus.approved ? DateTime.now() : orders[orderIndex].approvedDate,
-          cancelledDate: newStatus == OrderStatus.cancelled ? DateTime.now() : orders[orderIndex].cancelledDate,
+          approvedDate: newStatus == OrderStatus.approved
+              ? DateTime.now()
+              : orders[orderIndex].approvedDate,
+          cancelledDate: newStatus == OrderStatus.cancelled
+              ? DateTime.now()
+              : orders[orderIndex].cancelledDate,
         );
         orders[orderIndex] = updatedOrder;
       }
 
+      // Show success message with next steps
+      String successMessage = _getStatusUpdateMessage(newStatus);
       Get.snackbar(
-        'Success',
-        'Order status updated to ${newStatus.displayName}',
+        '✅ Status Updated',
+        successMessage,
         backgroundColor: Colors.green[100],
         colorText: Colors.green[800],
+        duration: Duration(seconds: 4),
       );
+
+      print('✅ Order status updated successfully');
     } catch (e) {
+      print('❌ Error updating order status: $e');
       Get.snackbar(
-        'Error',
-        'Failed to update order status: $e',
+        '❌ Update Failed',
+        'Failed to update order status: ${e.toString()}',
         backgroundColor: Colors.red[100],
         colorText: Colors.red[800],
+        duration: Duration(seconds: 4),
       );
     } finally {
       isLoading.value = false;
     }
   }
 
+  String _getStatusUpdateMessage(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.approved:
+        return 'Order approved! Customer will be notified. Next: Start Processing';
+      case OrderStatus.processing:
+        return 'Order is now being processed. Prepare items for shipping.';
+      case OrderStatus.shipped:
+        return 'Order shipped! Estimated delivery in 3 days. Customer notified.';
+      case OrderStatus.delivered:
+        return 'Order delivered successfully! Transaction completed.';
+      case OrderStatus.cancelled:
+        return 'Order cancelled. Customer will be refunded if applicable.';
+      default:
+        return 'Order status updated to ${status.displayName}';
+    }
+  }
+
   List<OrderModel> get filteredOrders {
     if (selectedStatus.value == OrderStatus.pending) {
-      return orders.where((order) => order.status == OrderStatus.pending).toList();
+      return orders
+          .where((order) => order.status == OrderStatus.pending)
+          .toList();
     }
     return orders;
   }
 
   int get totalOrders => orders.length;
-  int get pendingOrders => orders.where((order) => order.status == OrderStatus.pending).length;
-  int get approvedOrders => orders.where((order) => order.status == OrderStatus.approved).length;
-  int get cancelledOrders => orders.where((order) => order.status == OrderStatus.cancelled).length;
+  int get pendingOrders =>
+      orders.where((order) => order.status == OrderStatus.pending).length;
+  int get approvedOrders =>
+      orders.where((order) => order.status == OrderStatus.approved).length;
+  int get cancelledOrders =>
+      orders.where((order) => order.status == OrderStatus.cancelled).length;
 
   double get totalRevenue => orders
       .where((order) => order.status != OrderStatus.cancelled)
@@ -112,75 +161,414 @@ class OrdersController extends GetxController {
 
   void showOrderActionDialog(OrderModel order) {
     Get.dialog(
-      AlertDialog(
-        title: Text('Manage Order #${order.id.substring(0, 8)}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Customer: ${order.customerName}'),
-            Text('Total: ৳${order.totalAmount.toStringAsFixed(0)}'),
-            Text('Status: ${order.status.displayName}'),
-            SizedBox(height: 16),
-            Text('Choose Action:', style: TextStyle(fontWeight: FontWeight.bold)),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text('Cancel'),
+      Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          width: Get.width * 0.9,
+          height: Get.height * 0.7,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
           ),
-          if (order.status == OrderStatus.pending) ...[
-            TextButton(
-              onPressed: () {
-                Get.back();
-                _showApproveDialog(order);
-              },
-              child: Text('Approve', style: TextStyle(color: Colors.green)),
-            ),
-            TextButton(
-              onPressed: () {
-                Get.back();
-                _showCancelDialog(order);
-              },
-              child: Text('Cancel Order', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-          if (order.status == OrderStatus.approved) ...[
-            TextButton(
-              onPressed: () {
-                Get.back();
-                updateOrderStatus(order.id, OrderStatus.processing);
-              },
-              child: Text('Mark as Processing', style: TextStyle(color: Colors.blue)),
-            ),
-          ],
-          if (order.status == OrderStatus.processing) ...[
-            TextButton(
-              onPressed: () {
-                Get.back();
-                updateOrderStatus(order.id, OrderStatus.shipped);
-              },
-              child: Text('Mark as Shipped', style: TextStyle(color: Colors.purple)),
-            ),
-          ],
-          if (order.status == OrderStatus.shipped) ...[
-            TextButton(
-              onPressed: () {
-                Get.back();
-                updateOrderStatus(order.id, OrderStatus.delivered);
-              },
-              child: Text('Mark as Delivered', style: TextStyle(color: Colors.teal)),
-            ),
-          ],
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: order.status.color.withOpacity(0.1),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.shopping_bag,
+                        color: order.status.color, size: 24),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Order #${order.id.substring(0, 8)}',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Customer: ${order.customerName}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: order.status.color,
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Text(
+                        order.status.displayName,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () => Get.back(),
+                    ),
+                  ],
+                ),
+              ),
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Order Details
+                      _buildOrderDetailsSection(order),
+                      SizedBox(height: 20),
+
+                      // Progress Timeline
+                      _buildOrderTimeline(order),
+                      SizedBox(height: 20),
+
+                      // Action Buttons
+                      _buildActionButtons(order),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrderDetailsSection(OrderModel order) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.info_outline, color: Colors.blue, size: 20),
+              SizedBox(width: 8),
+              Text(
+                'Order Information',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12),
+          _buildDetailRow(
+              'Total Amount', '৳${order.totalAmount.toStringAsFixed(0)}'),
+          _buildDetailRow('Items Count', '${order.items.length} items'),
+          _buildDetailRow('Payment Method', order.paymentMethod.toUpperCase()),
+          _buildDetailRow('Phone', order.customerPhone),
+          _buildDetailRow('Address', '${order.shippingAddress}, ${order.city}'),
+          if (order.specialInstructions != null &&
+              order.specialInstructions!.isNotEmpty)
+            _buildDetailRow('Special Instructions', order.specialInstructions!),
+          if (order.adminNotes != null && order.adminNotes!.isNotEmpty)
+            _buildDetailRow('Admin Notes', order.adminNotes!),
         ],
       ),
     );
   }
 
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              '$label:',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[700],
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderTimeline(OrderModel order) {
+    List<Map<String, dynamic>> timeline = [
+      {
+        'status': OrderStatus.pending,
+        'title': 'Order Placed',
+        'subtitle': 'Customer placed the order',
+        'date': order.orderDate,
+        'completed': true,
+      },
+      {
+        'status': OrderStatus.approved,
+        'title': 'Order Approved',
+        'subtitle': 'Admin approved the order',
+        'date': order.approvedDate,
+        'completed': order.status.index >= OrderStatus.approved.index,
+      },
+      {
+        'status': OrderStatus.processing,
+        'title': 'Processing',
+        'subtitle': 'Order is being prepared',
+        'date': null, // Add processingDate to model if needed
+        'completed': order.status.index >= OrderStatus.processing.index,
+      },
+      {
+        'status': OrderStatus.shipped,
+        'title': 'Shipped',
+        'subtitle': 'Order dispatched for delivery',
+        'date': null, // Add shippedDate to model if needed
+        'completed': order.status.index >= OrderStatus.shipped.index,
+      },
+      {
+        'status': OrderStatus.delivered,
+        'title': 'Delivered',
+        'subtitle': 'Order delivered to customer',
+        'date': null, // Add deliveredDate to model if needed
+        'completed': order.status.index >= OrderStatus.delivered.index,
+      },
+    ];
+
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.timeline, color: Colors.green, size: 20),
+              SizedBox(width: 8),
+              Text(
+                'Order Progress',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 16),
+          ...timeline
+              .map((step) => _buildTimelineStep(
+                    step['status'] as OrderStatus,
+                    step['title'] as String,
+                    step['subtitle'] as String,
+                    step['date'] as DateTime?,
+                    step['completed'] as bool,
+                    step == timeline.last,
+                  ))
+              .toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimelineStep(OrderStatus status, String title, String subtitle,
+      DateTime? date, bool completed, bool isLast) {
+    return Row(
+      children: [
+        Column(
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: completed ? status.color : Colors.grey[300],
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                completed ? Icons.check : Icons.radio_button_unchecked,
+                color: Colors.white,
+                size: 16,
+              ),
+            ),
+            if (!isLast)
+              Container(
+                width: 2,
+                height: 40,
+                color: completed ? status.color : Colors.grey[300],
+              ),
+          ],
+        ),
+        SizedBox(width: 16),
+        Expanded(
+          child: Container(
+            padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: completed ? Colors.black87 : Colors.grey[600],
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                if (date != null)
+                  Text(
+                    _formatDateTime(date),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons(OrderModel order) {
+    List<Widget> buttons = [];
+
+    if (order.status == OrderStatus.pending) {
+      buttons.addAll([
+        _buildActionButton(
+          'Approve Order',
+          Icons.check_circle,
+          Colors.green,
+          () {
+            Get.back();
+            _showApproveDialog(order);
+          },
+        ),
+        SizedBox(height: 12),
+        _buildActionButton(
+          'Cancel Order',
+          Icons.cancel,
+          Colors.red,
+          () {
+            Get.back();
+            _showCancelDialog(order);
+          },
+        ),
+      ]);
+    } else if (order.status == OrderStatus.approved) {
+      buttons.add(
+        _buildActionButton(
+          'Start Processing',
+          Icons.play_circle_filled,
+          Colors.blue,
+          () {
+            Get.back();
+            _showProcessingDialog(order);
+          },
+        ),
+      );
+    } else if (order.status == OrderStatus.processing) {
+      buttons.add(
+        _buildActionButton(
+          'Mark as Shipped',
+          Icons.local_shipping,
+          Colors.purple,
+          () {
+            Get.back();
+            _showShippingDialog(order);
+          },
+        ),
+      );
+    } else if (order.status == OrderStatus.shipped) {
+      buttons.add(
+        _buildActionButton(
+          'Mark as Delivered',
+          Icons.check_circle_outline,
+          Colors.teal,
+          () {
+            Get.back();
+            _showDeliveryDialog(order);
+          },
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: buttons,
+    );
+  }
+
+  Widget _buildActionButton(
+      String text, IconData icon, Color color, VoidCallback onPressed) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, color: Colors.white),
+      label: Text(
+        text,
+        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        padding: EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
   void _showApproveDialog(OrderModel order) {
     final TextEditingController notesController = TextEditingController();
-    
+
     Get.dialog(
       AlertDialog(
         title: Text('Approve Order'),
@@ -208,9 +596,11 @@ class OrdersController extends GetxController {
             onPressed: () {
               Get.back();
               updateOrderStatus(
-                order.id, 
-                OrderStatus.approved, 
-                adminNotes: notesController.text.trim().isEmpty ? null : notesController.text.trim(),
+                order.id,
+                OrderStatus.approved,
+                adminNotes: notesController.text.trim().isEmpty
+                    ? null
+                    : notesController.text.trim(),
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
@@ -223,7 +613,7 @@ class OrdersController extends GetxController {
 
   void _showCancelDialog(OrderModel order) {
     final TextEditingController reasonController = TextEditingController();
-    
+
     Get.dialog(
       AlertDialog(
         title: Text('Cancel Order'),
@@ -251,13 +641,209 @@ class OrdersController extends GetxController {
             onPressed: () {
               Get.back();
               updateOrderStatus(
-                order.id, 
-                OrderStatus.cancelled, 
-                adminNotes: reasonController.text.trim().isEmpty ? null : reasonController.text.trim(),
+                order.id,
+                OrderStatus.cancelled,
+                adminNotes: reasonController.text.trim().isEmpty
+                    ? null
+                    : reasonController.text.trim(),
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: Text('Cancel Order'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showProcessingDialog(OrderModel order) {
+    final TextEditingController notesController = TextEditingController();
+
+    Get.dialog(
+      AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.play_circle_filled, color: Colors.blue),
+            SizedBox(width: 12),
+            Text('Start Processing'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+                'Order will be marked as "Processing".\nThis means the order is being prepared for shipment.'),
+            SizedBox(height: 16),
+            TextField(
+              controller: notesController,
+              decoration: InputDecoration(
+                labelText: 'Processing Notes (Optional)',
+                hintText:
+                    'e.g., Items being packed, expected completion time...',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              updateOrderStatus(
+                order.id,
+                OrderStatus.processing,
+                adminNotes: notesController.text.trim().isEmpty
+                    ? 'Order processing started'
+                    : notesController.text.trim(),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+            child: Text('Start Processing'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showShippingDialog(OrderModel order) {
+    final TextEditingController trackingController = TextEditingController();
+    final TextEditingController notesController = TextEditingController();
+
+    Get.dialog(
+      AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.local_shipping, color: Colors.purple),
+            SizedBox(width: 12),
+            Text('Mark as Shipped'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+                'Order will be marked as "Shipped".\nCustomer will be notified with tracking information.'),
+            SizedBox(height: 16),
+            TextField(
+              controller: trackingController,
+              decoration: InputDecoration(
+                labelText: 'Tracking Number (Optional)',
+                hintText: 'e.g., TRK123456789',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.track_changes),
+              ),
+            ),
+            SizedBox(height: 12),
+            TextField(
+              controller: notesController,
+              decoration: InputDecoration(
+                labelText: 'Shipping Notes (Optional)',
+                hintText: 'e.g., Courier service, expected delivery date...',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              String notes = 'Order shipped';
+              if (trackingController.text.trim().isNotEmpty) {
+                notes += ' - Tracking: ${trackingController.text.trim()}';
+              }
+              if (notesController.text.trim().isNotEmpty) {
+                notes += ' - ${notesController.text.trim()}';
+              }
+              updateOrderStatus(
+                order.id,
+                OrderStatus.shipped,
+                adminNotes: notes,
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
+            child: Text('Mark as Shipped'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeliveryDialog(OrderModel order) {
+    final TextEditingController notesController = TextEditingController();
+
+    Get.dialog(
+      AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.check_circle_outline, color: Colors.teal),
+            SizedBox(width: 12),
+            Text('Mark as Delivered'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.green[600]),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'This will complete the order. Make sure the customer has received the items.',
+                      style: TextStyle(color: Colors.green[700]),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: notesController,
+              decoration: InputDecoration(
+                labelText: 'Delivery Notes (Optional)',
+                hintText: 'e.g., Delivered to customer, signed by...',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.note_add),
+              ),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              updateOrderStatus(
+                order.id,
+                OrderStatus.delivered,
+                adminNotes: notesController.text.trim().isEmpty
+                    ? 'Order delivered successfully'
+                    : notesController.text.trim(),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+            child: Text('Mark as Delivered'),
           ),
         ],
       ),

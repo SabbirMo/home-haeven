@@ -13,6 +13,90 @@ class CheckoutScreen extends StatelessWidget {
     final CheckoutController checkoutController = Get.put(CheckoutController());
     final CartController cartController = Get.find<CartController>();
 
+    // Check if cart is empty
+    if (cartController.cartItems.isEmpty) {
+      return Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                icon: Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+                onPressed: () => Get.back(),
+              ),
+            ),
+          ),
+          title: Text(
+            'Checkout',
+            style: TextStyle(
+              color: Colors.black87,
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          centerTitle: true,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.shopping_cart_outlined,
+                size: 80,
+                color: Colors.grey[400],
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Your cart is empty',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[600],
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Add some items to your cart first',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[500],
+                ),
+              ),
+              SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => Get.back(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                child: Text(
+                  'Continue Shopping',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -110,7 +194,7 @@ class CheckoutScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 16, color: Colors.grey[600]),
               ),
               Text(
-                '\$${cartController.totalPrice.ceil().toString()}',
+                '৳${cartController.totalPrice.toStringAsFixed(0)}',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
             ],
@@ -126,7 +210,7 @@ class CheckoutScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 ),
                 Text(
-                  '\$${checkoutController.deliveryFee.ceil().toString()}',
+                  '৳${checkoutController.deliveryFee.toStringAsFixed(0)}',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
               ],
@@ -135,7 +219,8 @@ class CheckoutScreen extends StatelessWidget {
           Divider(height: 24),
           Obx(() {
             final checkoutController = Get.find<CheckoutController>();
-            final total = cartController.totalPrice + checkoutController.deliveryFee;
+            final total =
+                cartController.totalPrice + checkoutController.deliveryFee;
             final ceilingTotal = total.ceil();
             return Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -149,7 +234,7 @@ class CheckoutScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '\$${ceilingTotal.toString()}',
+                  '৳${ceilingTotal.toString()}',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -203,7 +288,7 @@ class CheckoutScreen extends StatelessWidget {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Your name and email are automatically filled from your account',
+                    'Your information is pre-filled from your account but you can edit it',
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.primary,
@@ -230,7 +315,8 @@ class CheckoutScreen extends StatelessWidget {
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.primary),
                           ),
                         ),
                         SizedBox(width: 12),
@@ -245,11 +331,10 @@ class CheckoutScreen extends StatelessWidget {
               : _buildTextField(
                   controller: controller.fullNameController,
                   label: 'Full Name',
-                  hint: 'Your name from account',
+                  hint: 'Enter your full name',
                   validator: controller.validateFullName,
                   prefixIcon: Icons.person_outline,
-                  enabled: false, // Make it read-only since it's from user account
-                  suffixIcon: Icons.lock_outline,
+                  enabled: true, // Now editable
                 )),
           SizedBox(height: 16),
           Obx(() => controller.isLoadingUserData.value
@@ -268,7 +353,8 @@ class CheckoutScreen extends StatelessWidget {
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.primary),
                           ),
                         ),
                         SizedBox(width: 12),
@@ -283,12 +369,11 @@ class CheckoutScreen extends StatelessWidget {
               : _buildTextField(
                   controller: controller.emailController,
                   label: 'Email Address',
-                  hint: 'Your email from account',
+                  hint: 'Enter your email address',
                   validator: controller.validateEmail,
                   prefixIcon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
-                  enabled: false, // Make it read-only since it's from user account
-                  suffixIcon: Icons.lock_outline,
+                  enabled: true, // Now editable
                 )),
           SizedBox(height: 16),
           _buildTextField(
@@ -389,51 +474,63 @@ class CheckoutScreen extends StatelessWidget {
           ),
           SizedBox(height: 16),
           Obx(() => Column(
-            children: controller.paymentMethods.map((method) {
-              final isSelected = controller.selectedPaymentMethod.value == method['id'];
-              return GestureDetector(
-                onTap: () => controller.selectPaymentMethod(method['id'] as String),
-                child: Container(
-                  margin: EdgeInsets.only(bottom: 12),
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected ? AppColors.primary : Colors.grey[300]!,
-                      width: isSelected ? 2 : 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        method['icon'] as IconData,
-                        color: isSelected ? AppColors.primary : Colors.grey[600],
-                        size: 24,
+                children: controller.paymentMethods.map((method) {
+                  final isSelected =
+                      controller.selectedPaymentMethod.value == method['id'];
+                  return GestureDetector(
+                    onTap: () =>
+                        controller.selectPaymentMethod(method['id'] as String),
+                    child: Container(
+                      margin: EdgeInsets.only(bottom: 12),
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.primary.withOpacity(0.1)
+                            : Colors.grey[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primary
+                              : Colors.grey[300]!,
+                          width: isSelected ? 2 : 1,
+                        ),
                       ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          method['name'] as String,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                            color: isSelected ? AppColors.primary : Colors.black87,
+                      child: Row(
+                        children: [
+                          Icon(
+                            method['icon'] as IconData,
+                            color: isSelected
+                                ? AppColors.primary
+                                : Colors.grey[600],
+                            size: 24,
                           ),
-                        ),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              method['name'] as String,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : Colors.black87,
+                              ),
+                            ),
+                          ),
+                          if (isSelected)
+                            Icon(
+                              Icons.check_circle,
+                              color: AppColors.primary,
+                              size: 20,
+                            ),
+                        ],
                       ),
-                      if (isSelected)
-                        Icon(
-                          Icons.check_circle,
-                          color: AppColors.primary,
-                          size: 20,
-                        ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
-          )),
+                    ),
+                  );
+                }).toList(),
+              )),
           if (controller.selectedPaymentMethod.value == 'cod')
             Container(
               margin: EdgeInsets.only(top: 8),
@@ -545,7 +642,9 @@ class CheckoutScreen extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20) : null,
-            suffixIcon: suffixIcon != null ? Icon(suffixIcon, size: 16, color: Colors.grey[500]) : null,
+            suffixIcon: suffixIcon != null
+                ? Icon(suffixIcon, size: 16, color: Colors.grey[500])
+                : null,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey[300]!),
@@ -575,7 +674,8 @@ class CheckoutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomSection(CheckoutController checkoutController, CartController cartController) {
+  Widget _buildBottomSection(
+      CheckoutController checkoutController, CartController cartController) {
     return Container(
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -593,7 +693,8 @@ class CheckoutScreen extends StatelessWidget {
         child: Column(
           children: [
             Obx(() {
-              final total = cartController.totalPrice + checkoutController.deliveryFee;
+              final total =
+                  cartController.totalPrice + checkoutController.deliveryFee;
               final ceilingTotal = total.ceil();
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -609,7 +710,7 @@ class CheckoutScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '\$${ceilingTotal.toString()}',
+                        '৳${ceilingTotal.toString()}',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -631,13 +732,13 @@ class CheckoutScreen extends StatelessWidget {
             }),
             SizedBox(height: 16),
             Obx(() => CustomButton(
-              text: checkoutController.isProcessingOrder.value 
-                  ? 'Processing...' 
-                  : 'Place Order',
-              onTap: checkoutController.isProcessingOrder.value 
-                  ? () {} 
-                  : () => checkoutController.processOrder(),
-            )),
+                  text: checkoutController.isProcessingOrder.value
+                      ? 'Processing...'
+                      : 'Place Order',
+                  onTap: checkoutController.isProcessingOrder.value
+                      ? () {}
+                      : () => checkoutController.processOrder(),
+                )),
           ],
         ),
       ),

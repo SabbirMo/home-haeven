@@ -18,6 +18,7 @@ import 'package:home_haven/features/checkout/screen/checkout_screen.dart';
 import 'package:home_haven/features/products/screen/all_products_screen.dart';
 import 'package:home_haven/features/outdoor/screen/outdoor_products_screen.dart';
 import 'package:home_haven/features/special_offers/special_offers_screen.dart';
+import 'package:home_haven/features/orders/screen/customer_order_screen.dart';
 
 class AppRouters {
   static final appRouters = [
@@ -89,6 +90,10 @@ class AppRouters {
       page: () => SpecialOffersScreen(),
       binding: HomeBinding(),
     ),
+    GetPage(
+      name: RouterConstant.customerOrders,
+      page: () => CustomerOrderScreen(),
+    ),
   ];
 }
 
@@ -108,4 +113,5 @@ class RouterConstant {
   static final furnitureProducts = '/furnitureProducts';
   static final appliancesProducts = '/appliancesProducts';
   static final specialOffers = '/specialOffers';
+  static final customerOrders = '/customerOrders';
 }

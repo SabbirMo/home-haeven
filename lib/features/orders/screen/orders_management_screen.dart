@@ -35,10 +35,10 @@ class OrdersManagementScreen extends StatelessWidget {
         children: [
           // Stats Overview
           _buildStatsOverview(ordersController),
-          
+
           // Filter Tabs
           _buildFilterTabs(ordersController),
-          
+
           // Orders List
           Expanded(
             child: Obx(() {
@@ -47,7 +47,7 @@ class OrdersManagementScreen extends StatelessWidget {
               }
 
               final filteredOrders = ordersController.filteredOrders;
-              
+
               if (filteredOrders.isEmpty) {
                 return _buildEmptyState();
               }
@@ -81,39 +81,40 @@ class OrdersManagementScreen extends StatelessWidget {
         ),
       ),
       child: Obx(() => Row(
-        children: [
-          Expanded(
-            child: _buildStatCard(
-              'Total Orders',
-              controller.totalOrders.toString(),
-              Icons.shopping_bag,
-              Colors.white,
-            ),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              'Pending',
-              controller.pendingOrders.toString(),
-              Icons.pending,
-              Colors.orange[200]!,
-            ),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              'Revenue',
-              '৳${controller.totalRevenue.toStringAsFixed(0)}',
-              Icons.attach_money,
-              Colors.green[200]!,
-            ),
-          ),
-        ],
-      )),
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  'Total Orders',
+                  controller.totalOrders.toString(),
+                  Icons.shopping_bag,
+                  Colors.white,
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: _buildStatCard(
+                  'Pending',
+                  controller.pendingOrders.toString(),
+                  Icons.pending,
+                  Colors.orange[200]!,
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: _buildStatCard(
+                  'Revenue',
+                  '৳${controller.totalRevenue.toStringAsFixed(0)}',
+                  Icons.attach_money,
+                  Colors.green[200]!,
+                ),
+              ),
+            ],
+          )),
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color iconColor) {
+  Widget _buildStatCard(
+      String title, String value, IconData icon, Color iconColor) {
     return Container(
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -147,42 +148,111 @@ class OrdersManagementScreen extends StatelessWidget {
   }
 
   Widget _buildFilterTabs(OrdersController controller) {
+    final filters = [
+      {'label': 'All', 'status': null, 'color': Colors.grey},
+      {
+        'label': 'Pending',
+        'status': OrderStatus.pending,
+        'color': Colors.orange
+      },
+      {
+        'label': 'Approved',
+        'status': OrderStatus.approved,
+        'color': Colors.green
+      },
+      {
+        'label': 'Processing',
+        'status': OrderStatus.processing,
+        'color': Colors.blue
+      },
+      {
+        'label': 'Shipped',
+        'status': OrderStatus.shipped,
+        'color': Colors.purple
+      },
+      {
+        'label': 'Delivered',
+        'status': OrderStatus.delivered,
+        'color': Colors.teal
+      },
+    ];
+
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Obx(() => Row(
-        children: [
-          Expanded(
-            child: _buildFilterChip(
-              'All Orders',
-              controller.selectedStatus.value == OrderStatus.pending && controller.filteredOrders.length == controller.totalOrders,
-              () => controller.selectedStatus.value = OrderStatus.values.first,
-              controller,
-            ),
-          ),
-          SizedBox(width: 8),
-          Expanded(
-            child: _buildFilterChip(
-              'Pending',
-              controller.selectedStatus.value == OrderStatus.pending,
-              () => controller.filterByStatus(OrderStatus.pending),
-              controller,
-            ),
-          ),
-          SizedBox(width: 8),
-          Expanded(
-            child: _buildFilterChip(
-              'Approved',
-              controller.selectedStatus.value == OrderStatus.approved,
-              () => controller.filterByStatus(OrderStatus.approved),
-              controller,
-            ),
-          ),
-        ],
-      )),
+      height: 60,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        itemCount: filters.length,
+        itemBuilder: (context, index) {
+          final filter = filters[index];
+          final isSelected = (filter['status'] == null &&
+                  controller.selectedStatus.value ==
+                      OrderStatus.values.first) ||
+              (filter['status'] == controller.selectedStatus.value);
+
+          return Obx(() => Container(
+                margin: EdgeInsets.only(right: 8),
+                child: GestureDetector(
+                  onTap: () {
+                    if (filter['status'] == null) {
+                      // Show all orders by resetting filter
+                      controller.selectedStatus.value =
+                          OrderStatus.values.first;
+                    } else {
+                      controller
+                          .filterByStatus(filter['status'] as OrderStatus);
+                    }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? (filter['color'] as Color)
+                          : Colors.grey[200],
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected
+                            ? (filter['color'] as Color)
+                            : Colors.grey[300]!,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Colors.white
+                                : (filter['color'] as Color),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        SizedBox(width: 6),
+                        Text(
+                          filter['label'] as String,
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.grey[700],
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ));
+        },
+      ),
     );
   }
 
-  Widget _buildFilterChip(String label, bool isSelected, VoidCallback onTap, OrdersController controller) {
+  Widget _buildFilterChip(String label, bool isSelected, VoidCallback onTap,
+      OrdersController controller) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -242,7 +312,8 @@ class OrdersManagementScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: order.status.color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: order.status.color.withOpacity(0.3)),
+                    border:
+                        Border.all(color: order.status.color.withOpacity(0.3)),
                   ),
                   child: Text(
                     order.status.displayName,
@@ -256,7 +327,7 @@ class OrdersManagementScreen extends StatelessWidget {
               ],
             ),
             SizedBox(height: 8),
-            
+
             // Customer Info
             Row(
               children: [
@@ -283,7 +354,7 @@ class OrdersManagementScreen extends StatelessWidget {
               ],
             ),
             SizedBox(height: 8),
-            
+
             // Order Details
             Row(
               children: [
@@ -308,7 +379,7 @@ class OrdersManagementScreen extends StatelessWidget {
               ],
             ),
             SizedBox(height: 8),
-            
+
             // Order Date and Actions
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -344,8 +415,9 @@ class OrdersManagementScreen extends StatelessWidget {
                 ),
               ],
             ),
-            
-            if (order.specialInstructions != null && order.specialInstructions!.isNotEmpty) ...[
+
+            if (order.specialInstructions != null &&
+                order.specialInstructions!.isNotEmpty) ...[
               SizedBox(height: 8),
               Container(
                 padding: EdgeInsets.all(8),
@@ -371,7 +443,7 @@ class OrdersManagementScreen extends StatelessWidget {
                 ),
               ),
             ],
-            
+
             if (order.adminNotes != null && order.adminNotes!.isNotEmpty) ...[
               SizedBox(height: 8),
               Container(
@@ -382,7 +454,8 @@ class OrdersManagementScreen extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.admin_panel_settings, size: 16, color: Colors.green[600]),
+                    Icon(Icons.admin_panel_settings,
+                        size: 16, color: Colors.green[600]),
                     SizedBox(width: 4),
                     Expanded(
                       child: Text(

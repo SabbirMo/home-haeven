@@ -63,8 +63,9 @@ class OrderModel {
       paymentMethod: json['paymentMethod'] ?? '',
       specialInstructions: json['specialInstructions'],
       items: (json['items'] as List<dynamic>?)
-          ?.map((item) => CartModel.fromJson(item))
-          .toList() ?? [],
+              ?.map((item) => CartModel.fromJson(item))
+              .toList() ??
+          [],
       subtotal: (json['subtotal'] ?? 0).toDouble(),
       deliveryFee: (json['deliveryFee'] ?? 0).toDouble(),
       totalAmount: (json['totalAmount'] ?? 0).toDouble(),
@@ -72,12 +73,13 @@ class OrderModel {
         (e) => e.toString().split('.').last == (json['status'] ?? 'pending'),
         orElse: () => OrderStatus.pending,
       ),
-      orderDate: DateTime.parse(json['orderDate'] ?? DateTime.now().toIso8601String()),
-      approvedDate: json['approvedDate'] != null 
-          ? DateTime.parse(json['approvedDate']) 
+      orderDate:
+          DateTime.parse(json['orderDate'] ?? DateTime.now().toIso8601String()),
+      approvedDate: json['approvedDate'] != null
+          ? DateTime.parse(json['approvedDate'])
           : null,
-      cancelledDate: json['cancelledDate'] != null 
-          ? DateTime.parse(json['cancelledDate']) 
+      cancelledDate: json['cancelledDate'] != null
+          ? DateTime.parse(json['cancelledDate'])
           : null,
       adminNotes: json['adminNotes'],
     );

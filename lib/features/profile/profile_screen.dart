@@ -10,7 +10,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: SafeArea(
@@ -38,10 +38,10 @@ class ProfileScreen extends StatelessWidget {
                     CircleAvatar(
                       radius: 40,
                       backgroundColor: AppColors.primary.withOpacity(0.1),
-                      backgroundImage: user?.photoURL != null 
+                      backgroundImage: user?.photoURL != null
                           ? NetworkImage(user!.photoURL!)
                           : null,
-                      child: user?.photoURL == null 
+                      child: user?.photoURL == null
                           ? Icon(
                               Icons.person_rounded,
                               size: 40,
@@ -68,13 +68,16 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 16),
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        user?.emailVerified == true ? 'Verified Account' : 'Unverified',
+                        user?.emailVerified == true
+                            ? 'Verified Account'
+                            : 'Unverified',
                         style: TextStyle(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,
@@ -84,45 +87,51 @@ class ProfileScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               SizedBox(height: 24),
-              
+
               // Menu Options
               _buildMenuSection('Account', [
                 _buildMenuItem(
                   Icons.edit_rounded,
                   'Edit Profile',
                   'Update your personal information',
-                  () => Get.snackbar('Coming Soon', 'Edit profile feature coming soon!'),
+                  () => Get.snackbar(
+                      'Coming Soon', 'Edit profile feature coming soon!'),
                 ),
                 _buildMenuItem(
                   Icons.shopping_bag_rounded,
                   'Order History',
                   'View your past orders',
-                  () => Get.snackbar('Coming Soon', 'Order history feature coming soon!'),
+                  () {
+                    Get.toNamed(RouterConstant.customerOrders);
+                  },
                 ),
                 _buildMenuItem(
                   Icons.location_on_rounded,
                   'Addresses',
                   'Manage delivery addresses',
-                  () => Get.snackbar('Coming Soon', 'Address management coming soon!'),
+                  () => Get.snackbar(
+                      'Coming Soon', 'Address management coming soon!'),
                 ),
               ]),
-              
+
               SizedBox(height: 16),
-              
+
               _buildMenuSection('Preferences', [
                 _buildMenuItem(
                   Icons.notifications_rounded,
                   'Notifications',
                   'Manage notification settings',
-                  () => Get.snackbar('Coming Soon', 'Notification settings coming soon!'),
+                  () => Get.snackbar(
+                      'Coming Soon', 'Notification settings coming soon!'),
                 ),
                 _buildMenuItem(
                   Icons.security_rounded,
                   'Security',
                   'Password and security settings',
-                  () => Get.snackbar('Coming Soon', 'Security settings coming soon!'),
+                  () => Get.snackbar(
+                      'Coming Soon', 'Security settings coming soon!'),
                 ),
                 _buildMenuItem(
                   Icons.help_rounded,
@@ -131,9 +140,9 @@ class ProfileScreen extends StatelessWidget {
                   () => Get.snackbar('Coming Soon', 'Help center coming soon!'),
                 ),
               ]),
-              
+
               SizedBox(height: 24),
-              
+
               // Logout Button
               Container(
                 width: double.infinity,
@@ -165,7 +174,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               SizedBox(height: 40),
             ],
           ),
@@ -207,7 +216,8 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, String subtitle, VoidCallback onTap) {
+  Widget _buildMenuItem(
+      IconData icon, String title, String subtitle, VoidCallback onTap) {
     return ListTile(
       onTap: onTap,
       contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),

@@ -10,7 +10,7 @@ class CheckoutController extends GetxController {
   // Firebase instances
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   // Form controllers
   final fullNameController = TextEditingController();
   final emailController = TextEditingController();
@@ -27,7 +27,7 @@ class CheckoutController extends GetxController {
 
   // Payment method selection
   var selectedPaymentMethod = 'cod'.obs;
-  
+
   // Loading state
   var isProcessingOrder = false.obs;
   var isLoadingUserData = true.obs;
@@ -36,7 +36,11 @@ class CheckoutController extends GetxController {
   final paymentMethods = [
     {'id': 'cod', 'name': 'Cash on Delivery', 'icon': Icons.local_shipping},
     {'id': 'card', 'name': 'Credit/Debit Card', 'icon': Icons.credit_card},
-    {'id': 'wallet', 'name': 'Digital Wallet', 'icon': Icons.account_balance_wallet},
+    {
+      'id': 'wallet',
+      'name': 'Digital Wallet',
+      'icon': Icons.account_balance_wallet
+    },
   ];
 
   @override
@@ -51,24 +55,23 @@ class CheckoutController extends GetxController {
   Future<void> fetchUserData() async {
     try {
       isLoadingUserData.value = true;
-      
+
       User? currentUser = _auth.currentUser;
       if (currentUser != null) {
         // Try to get user data from Firestore first
         try {
-          DocumentSnapshot userDoc = await _firestore
-              .collection('auth')
-              .doc(currentUser.uid)
-              .get();
-          
+          DocumentSnapshot userDoc =
+              await _firestore.collection('auth').doc(currentUser.uid).get();
+
           if (userDoc.exists) {
-            Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
-            
+            Map<String, dynamic> userData =
+                userDoc.data() as Map<String, dynamic>;
+
             // Pre-fill form with user data from Firestore
-            fullNameController.text = userData['name'] ?? currentUser.displayName ?? '';
+            fullNameController.text =
+                userData['name'] ?? currentUser.displayName ?? '';
             emailController.text = userData['email'] ?? currentUser.email ?? '';
-            // Note: phone number is not stored in this Firestore structure
-            // phoneController.text = userData['phone'] ?? '';
+            // Note: Allow user to edit name and email if they want to use different info
           } else {
             // Fallback to Firebase Auth data
             fullNameController.text = currentUser.displayName ?? '';
@@ -78,10 +81,13 @@ class CheckoutController extends GetxController {
           // If Firestore fails, use Firebase Auth data
           fullNameController.text = currentUser.displayName ?? '';
           emailController.text = currentUser.email ?? '';
+          print(
+              'Using Firebase Auth data due to Firestore error: $firestoreError');
         }
-        
+
         // Check if we have phone number from Firebase Auth (usually null unless using phone auth)
-        if (currentUser.phoneNumber != null && currentUser.phoneNumber!.isNotEmpty) {
+        if (currentUser.phoneNumber != null &&
+            currentUser.phoneNumber!.isNotEmpty) {
           phoneController.text = currentUser.phoneNumber!;
         }
       }
@@ -118,20 +124,20 @@ class CheckoutController extends GetxController {
   }
 
   String? validateFullName(String? value) {
-    if (value == null || value.isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return 'Full name is required';
     }
-    if (value.length < 2) {
+    if (value.trim().length < 2) {
       return 'Full name must be at least 2 characters';
     }
     return null;
   }
 
   String? validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return 'Email is required';
     }
-    if (!GetUtils.isEmail(value)) {
+    if (!GetUtils.isEmail(value.trim())) {
       return 'Please enter a valid email';
     }
     return null;
@@ -141,8 +147,10 @@ class CheckoutController extends GetxController {
     if (value == null || value.isEmpty) {
       return 'Phone number is required';
     }
-    if (value.length < 10) {
-      return 'Please enter a valid phone number';
+    // Remove any non-numeric characters for validation
+    String cleanPhone = value.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanPhone.length < 10) {
+      return 'Please enter a valid phone number (at least 10 digits)';
     }
     return null;
   }
@@ -182,6 +190,18 @@ class CheckoutController extends GetxController {
   }
 
   Future<void> processOrder() async {
+    // Check if cart is empty
+    final cartController = Get.find<CartController>();
+    if (cartController.cartItems.isEmpty) {
+      Get.snackbar(
+        'Cart Empty',
+        'Please add items to your cart before checkout',
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
     if (!formKey.currentState!.validate()) {
       Get.snackbar(
         'Error',
@@ -206,24 +226,33 @@ class CheckoutController extends GetxController {
         zipCode: zipCodeController.text.trim(),
         country: countryController.text.trim(),
         paymentMethod: selectedPaymentMethod.value,
-        specialInstructions: specialInstructionsController.text.trim().isEmpty 
-            ? null 
+        specialInstructions: specialInstructionsController.text.trim().isEmpty
+            ? null
             : specialInstructionsController.text.trim(),
       );
 
       // Get cart controller
-      final cartController = Get.find<CartController>();
+      // Note: Already retrieved above for validation
+
+      // Show loading state and process order
+      Get.snackbar(
+        'Processing Order',
+        'Please wait while we process your order...',
+        backgroundColor: Colors.blue,
+        colorText: Colors.white,
+        duration: Duration(seconds: 2),
+      );
 
       // Simulate order processing delay
-      await Future.delayed(Duration(seconds: 2));
+      await Future.delayed(Duration(seconds: 1));
 
-      // Here you would typically send the order to your backend
-      // For now, we'll just show success message and clear cart
-      print('Order placed: ${checkoutData.toJson()}'); // Use the checkoutData
-      
+      // Create order in Firebase
+      String orderId =
+          await _createOrderInFirebase(checkoutData, cartController);
+
       Get.snackbar(
         'Order Placed Successfully!',
-        'Your order has been placed and will be delivered soon',
+        'Your order #${orderId.substring(0, 8)} has been placed and will be delivered soon',
         backgroundColor: Colors.green,
         colorText: Colors.white,
         duration: Duration(seconds: 3),
@@ -234,7 +263,8 @@ class CheckoutController extends GetxController {
 
       // Navigate back to home tab via bottom navigation
       try {
-        final NavigationController navController = Get.find<NavigationController>();
+        final NavigationController navController =
+            Get.find<NavigationController>();
         navController.changeTab(0); // Switch to home tab
         Get.back(); // Close checkout screen
       } catch (e) {
@@ -242,13 +272,14 @@ class CheckoutController extends GetxController {
         Get.back();
         Get.back();
       }
-
     } catch (e) {
+      print('Error in processOrder: $e');
       Get.snackbar(
         'Error',
-        'Failed to process order. Please try again.',
+        'Failed to process order: ${e.toString()}. Please try again.',
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        duration: Duration(seconds: 4),
       );
     } finally {
       isProcessingOrder.value = false;
@@ -276,5 +307,54 @@ class CheckoutController extends GetxController {
       orElse: () => {'name': 'Cash on Delivery'},
     );
     return method['name'] as String;
+  }
+
+  // Create order in Firebase
+  Future<String> _createOrderInFirebase(
+      CheckoutModel checkoutData, CartController cartController) async {
+    try {
+      User? currentUser = _auth.currentUser;
+      if (currentUser == null) {
+        throw Exception('User not authenticated. Please log in again.');
+      }
+
+      if (cartController.cartItems.isEmpty) {
+        throw Exception('Cannot create order with empty cart');
+      }
+
+      String orderId = _firestore.collection('orders').doc().id;
+
+      Map<String, dynamic> orderData = {
+        'id': orderId,
+        'userId': currentUser.uid,
+        'customerName': checkoutData.fullName,
+        'customerEmail': checkoutData.email,
+        'customerPhone': checkoutData.phoneNumber,
+        'shippingAddress': checkoutData.address,
+        'city': checkoutData.city,
+        'state': checkoutData.state,
+        'zipCode': checkoutData.zipCode,
+        'country': checkoutData.country,
+        'paymentMethod': checkoutData.paymentMethod,
+        'specialInstructions': checkoutData.specialInstructions,
+        'items': cartController.cartItems.map((item) => item.toJson()).toList(),
+        'subtotal': cartController.totalPrice,
+        'deliveryFee': deliveryFee,
+        'totalAmount': cartController.totalPrice + deliveryFee,
+        'status': 'pending',
+        'orderDate': DateTime.now().toIso8601String(),
+        'approvedDate': null,
+        'cancelledDate': null,
+        'adminNotes': null,
+      };
+
+      print('Creating order with data: $orderData'); // Debug log
+      await _firestore.collection('orders').doc(orderId).set(orderData);
+      print('Order created successfully with ID: $orderId'); // Debug log
+      return orderId;
+    } catch (e) {
+      print('Error creating order in Firebase: $e');
+      throw Exception('Failed to create order: ${e.toString()}');
+    }
   }
 }
