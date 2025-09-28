@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:home_haven/core/assets/app_colors.dart';
 import 'package:home_haven/core/router/app_routers.dart';
+import 'package:home_haven/features/orders/screen/customer_orders_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -103,9 +104,8 @@ class ProfileScreen extends StatelessWidget {
                   Icons.shopping_bag_rounded,
                   'Order History',
                   'View your past orders',
-                  () {
-                    Get.toNamed(RouterConstant.customerOrders);
-                  },
+                  () => Get.snackbar(
+                      'Coming Soon', 'Order history feature coming soon!'),
                 ),
                 _buildMenuItem(
                   Icons.location_on_rounded,
