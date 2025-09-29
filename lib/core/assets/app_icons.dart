@@ -19,4 +19,6 @@ class AppIcons {
   static const String homes = 'assets/icons/home.png';
   //notification
   static const String bell = 'assets/icons/bell.png';
+  //home Svg
+  static const String homeSvg = 'assets/svg/home.svg';
 }

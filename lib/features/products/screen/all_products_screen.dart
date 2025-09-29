@@ -107,7 +107,7 @@ class AllProductsScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withOpacity(0.1),
+                              color: Colors.grey.withValues(alpha: 0.1),
                               blurRadius: 10,
                               offset: Offset(0, 2),
                             ),
@@ -124,7 +124,6 @@ class AllProductsScreen extends StatelessWidget {
                             contentPadding: EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 12),
                           ),
-                          autofocus: true,
                         ),
                       )
                     : SizedBox.shrink()),
@@ -189,7 +188,7 @@ class AllProductsScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.08),
+              color: Colors.grey.withValues(alpha: 0.08),
               blurRadius: 10,
               offset: Offset(0, 2),
             ),
@@ -300,7 +299,7 @@ class AllProductsScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.red.withOpacity(0.3),
+                              color: Colors.red.withValues(alpha: 0.3),
                               blurRadius: 4,
                               offset: Offset(0, 2),
                             ),
@@ -314,7 +313,7 @@ class AllProductsScreen extends StatelessWidget {
                             fontWeight: FontWeight.w700,
                             shadows: [
                               Shadow(
-                                color: Colors.black.withOpacity(0.3),
+                                color: Colors.black.withValues(alpha: 0.3),
                                 offset: Offset(0, 1),
                                 blurRadius: 2,
                               ),
@@ -445,7 +444,7 @@ class AllProductsScreen extends StatelessWidget {
                                     height: 32,
                                     decoration: BoxDecoration(
                                       color: isWishlisted
-                                          ? AppColors.red.withOpacity(0.1)
+                                          ? AppColors.red.withValues(alpha: 0.1)
                                           : Colors.grey[100],
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
@@ -491,7 +490,7 @@ class AllProductsScreen extends StatelessWidget {
                                     height: 32,
                                     decoration: BoxDecoration(
                                       color: isInCart
-                                          ? Colors.green
+                                          ? AppColors.red
                                           : AppColors.primary,
                                       borderRadius: BorderRadius.circular(8),
                                     ),

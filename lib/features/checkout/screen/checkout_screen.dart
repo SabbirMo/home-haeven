@@ -4,6 +4,7 @@ import 'package:home_haven/core/assets/app_colors.dart';
 import 'package:home_haven/features/checkout/controller/checkout_controller.dart';
 import 'package:home_haven/features/cart/controller/cart_controller.dart';
 import 'package:home_haven/features/onboarding/widget/custom_button.dart';
+import 'package:home_haven/features/bottom_navbar/controller/navigation_controller.dart';
 
 class CheckoutScreen extends StatelessWidget {
   const CheckoutScreen({super.key});
@@ -28,7 +29,7 @@ class CheckoutScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withValues(alpha: 0.1),
                     blurRadius: 10,
                     offset: Offset(0, 2),
                   ),
@@ -78,7 +79,32 @@ class CheckoutScreen extends StatelessWidget {
               ),
               SizedBox(height: 24),
               ElevatedButton(
-                onPressed: () => Get.back(),
+                onPressed: () {
+                  // Navigate to home screen through bottom navigation
+                  try {
+                    final NavigationController navController =
+                        Get.find<NavigationController>();
+                    navController.changeTab(0); // Switch to home tab (index 0)
+
+                    // Go back from checkout screen
+                    Get.back();
+
+                    Get.snackbar(
+                      'Continue Shopping! 🛍️',
+                      'Add items to your cart',
+                      backgroundColor: AppColors.primary.withOpacity(0.1),
+                      colorText: AppColors.primary,
+                      duration: Duration(seconds: 2),
+                      snackPosition: SnackPosition.BOTTOM,
+                      margin: EdgeInsets.all(16),
+                      borderRadius: 12,
+                      icon: Icon(Icons.shopping_cart, color: AppColors.primary),
+                    );
+                  } catch (e) {
+                    // Fallback: Just go back
+                    Get.back();
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
@@ -110,7 +136,7 @@ class CheckoutScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: Colors.grey.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: Offset(0, 2),
                 ),
@@ -168,7 +194,7 @@ class CheckoutScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
+            color: Colors.grey.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: Offset(0, 2),
           ),
@@ -257,7 +283,7 @@ class CheckoutScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
+            color: Colors.grey.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: Offset(0, 2),
           ),
@@ -278,9 +304,10 @@ class CheckoutScreen extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+              border:
+                  Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
@@ -455,7 +482,7 @@ class CheckoutScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
+            color: Colors.grey.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: Offset(0, 2),
           ),
@@ -485,7 +512,7 @@ class CheckoutScreen extends StatelessWidget {
                       padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.primary.withOpacity(0.1)
+                            ? AppColors.primary.withValues(alpha: 0.1)
                             : Colors.grey[50],
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
@@ -536,9 +563,9 @@ class CheckoutScreen extends StatelessWidget {
               margin: EdgeInsets.only(top: 8),
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: Colors.orange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
@@ -569,7 +596,7 @@ class CheckoutScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
+            color: Colors.grey.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: Offset(0, 2),
           ),
@@ -683,7 +710,7 @@ class CheckoutScreen extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: Offset(0, -5),
           ),

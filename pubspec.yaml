@@ -48,6 +48,7 @@ dependencies:
   shimmer: ^3.0.0
   blur: ^3.1.0
   intl: ^0.19.0
+  image_picker: ^1.0.4
 
 dev_dependencies:
   flutter_test:
@@ -74,6 +75,7 @@ flutter:
   assets:
     - assets/icons/
     - assets/images/
+    - assets/svg/
     - assets/images/icons/
 
   # An image asset can refer to one or more resolution-specific "variants", see

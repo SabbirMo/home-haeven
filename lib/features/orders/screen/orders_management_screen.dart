@@ -59,7 +59,7 @@ class OrdersManagementScreen extends StatelessWidget {
                   itemCount: filteredOrders.length,
                   itemBuilder: (context, index) {
                     final order = filteredOrders[index];
-                    return _buildOrderCard(order, ordersController);
+                    return _buildSimpleOrderCard(order, ordersController);
                   },
                 ),
               );
@@ -118,9 +118,9 @@ class OrdersManagementScreen extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -138,7 +138,7 @@ class OrdersManagementScreen extends StatelessWidget {
             title,
             style: TextStyle(
               fontSize: 10,
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
             ),
             textAlign: TextAlign.center,
           ),
@@ -148,106 +148,38 @@ class OrdersManagementScreen extends StatelessWidget {
   }
 
   Widget _buildFilterTabs(OrdersController controller) {
-    final filters = [
-      {'label': 'All', 'status': null, 'color': Colors.grey},
-      {
-        'label': 'Pending',
-        'status': OrderStatus.pending,
-        'color': Colors.orange
-      },
-      {
-        'label': 'Approved',
-        'status': OrderStatus.approved,
-        'color': Colors.green
-      },
-      {
-        'label': 'Processing',
-        'status': OrderStatus.processing,
-        'color': Colors.blue
-      },
-      {
-        'label': 'Shipped',
-        'status': OrderStatus.shipped,
-        'color': Colors.purple
-      },
-      {
-        'label': 'Delivered',
-        'status': OrderStatus.delivered,
-        'color': Colors.teal
-      },
-    ];
-
     return Container(
-      height: 60,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        itemCount: filters.length,
-        itemBuilder: (context, index) {
-          final filter = filters[index];
-          final isSelected = (filter['status'] == null &&
-                  controller.selectedStatus.value ==
-                      OrderStatus.values.first) ||
-              (filter['status'] == controller.selectedStatus.value);
-
-          return Obx(() => Container(
-                margin: EdgeInsets.only(right: 8),
-                child: GestureDetector(
-                  onTap: () {
-                    if (filter['status'] == null) {
-                      // Show all orders by resetting filter
-                      controller.selectedStatus.value =
-                          OrderStatus.values.first;
-                    } else {
-                      controller
-                          .filterByStatus(filter['status'] as OrderStatus);
-                    }
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? (filter['color'] as Color)
-                          : Colors.grey[200],
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected
-                            ? (filter['color'] as Color)
-                            : Colors.grey[300]!,
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? Colors.white
-                                : (filter['color'] as Color),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        SizedBox(width: 6),
-                        Text(
-                          filter['label'] as String,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.grey[700],
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.normal,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Obx(() => Row(
+            children: [
+              Expanded(
+                child: _buildFilterChip(
+                  'All Orders',
+                  controller.selectedStatus.value == null,
+                  () => controller.showAllOrders(),
+                  controller,
                 ),
-              ));
-        },
-      ),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: _buildFilterChip(
+                  'Pending',
+                  controller.selectedStatus.value == OrderStatus.pending,
+                  () => controller.filterByStatus(OrderStatus.pending),
+                  controller,
+                ),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: _buildFilterChip(
+                  'Approved',
+                  controller.selectedStatus.value == OrderStatus.approved,
+                  () => controller.filterByStatus(OrderStatus.approved),
+                  controller,
+                ),
+              ),
+            ],
+          )),
     );
   }
 
@@ -274,16 +206,15 @@ class OrdersManagementScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderCard(OrderModel order, OrdersController controller) {
+  Widget _buildSimpleOrderCard(OrderModel order, OrdersController controller) {
     return Container(
       margin: EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -292,185 +223,260 @@ class OrdersManagementScreen extends StatelessWidget {
       child: InkWell(
         onTap: () => controller.showOrderActionDialog(order),
         borderRadius: BorderRadius.circular(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Order Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Order #${order.id.substring(0, 8)}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Order Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Order #${order.id.substring(0, 8)}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        order.customerName,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: order.status.color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border:
-                        Border.all(color: order.status.color.withOpacity(0.3)),
-                  ),
-                  child: Text(
-                    order.status.displayName,
-                    style: TextStyle(
-                      color: order.status.color,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: order.status.color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: order.status.color.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      order.status.displayName,
+                      style: TextStyle(
+                        color: order.status.color,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
+                ],
+              ),
+              SizedBox(height: 12),
 
-            // Customer Info
-            Row(
-              children: [
-                Icon(Icons.person, size: 16, color: Colors.grey[600]),
-                SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    order.customerName,
+              // Order Info
+              Row(
+                children: [
+                  Icon(Icons.shopping_cart, size: 16, color: Colors.grey[600]),
+                  SizedBox(width: 8),
+                  Text(
+                    '${order.items.length} items',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[700],
                     ),
                   ),
-                ),
-                Icon(Icons.phone, size: 16, color: Colors.grey[600]),
-                SizedBox(width: 4),
-                Text(
-                  order.customerPhone,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[700],
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-
-            // Order Details
-            Row(
-              children: [
-                Icon(Icons.shopping_cart, size: 16, color: Colors.grey[600]),
-                SizedBox(width: 4),
-                Text(
-                  '${order.items.length} items',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[700],
-                  ),
-                ),
-                Spacer(),
-                Text(
-                  '৳${order.totalAmount.toStringAsFixed(0)}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-
-            // Order Date and Actions
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
-                    SizedBox(width: 4),
-                    Text(
-                      _formatDate(order.orderDate),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                  Spacer(),
+                  Text(
+                    '৳${order.totalAmount.toStringAsFixed(0)}',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
                     ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12),
+
+              // Products List (Simple Text Format)
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.inventory_2,
+                            size: 16, color: Colors.blue[600]),
+                        SizedBox(width: 8),
+                        Text(
+                          'Products in this order:',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blue[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: order.items.take(3).map((item) {
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: 4),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 4,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: Colors.blue[600],
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '${item.name ?? 'Product'} (${item.color ?? 'Color'}) x${item.quantity}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.blue[700],
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Text(
+                                '৳${(item.price * item.quantity).toStringAsFixed(0)}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.blue[700],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    if (order.items.length > 3)
+                      Padding(
+                        padding: EdgeInsets.only(top: 4),
+                        child: Text(
+                          '+${order.items.length - 3} more items...',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.blue[600],
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
-                Row(
-                  children: [
-                    Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
-                    SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
+              ),
+              SizedBox(height: 12),
+
+              // Order Date and Location
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.access_time,
+                          size: 16, color: Colors.grey[600]),
+                      SizedBox(width: 4),
+                      Text(
+                        _formatDate(order.orderDate),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on,
+                          size: 16, color: Colors.grey[600]),
+                      SizedBox(width: 4),
+                      Text(
                         '${order.city}, ${order.state}',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[600],
                         ),
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                ],
+              ),
+
+              // Special Instructions
+              if (order.specialInstructions != null &&
+                  order.specialInstructions!.isNotEmpty) ...[
+                SizedBox(height: 8),
+                Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.orange[50],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.note, size: 16, color: Colors.orange[600]),
+                      SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          order.specialInstructions!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.orange[700],
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
-            ),
 
-            if (order.specialInstructions != null &&
-                order.specialInstructions!.isNotEmpty) ...[
-              SizedBox(height: 8),
-              Container(
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.note, size: 16, color: Colors.blue[600]),
-                    SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        order.specialInstructions!,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.blue[700],
-                          fontStyle: FontStyle.italic,
+              // Admin Notes
+              if (order.adminNotes != null && order.adminNotes!.isNotEmpty) ...[
+                SizedBox(height: 8),
+                Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.green[50],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.admin_panel_settings,
+                          size: 16, color: Colors.green[600]),
+                      SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          'Admin Notes: ${order.adminNotes!}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.green[700],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ],
-
-            if (order.adminNotes != null && order.adminNotes!.isNotEmpty) ...[
-              SizedBox(height: 8),
-              Container(
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.green[50],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.admin_panel_settings,
-                        size: 16, color: Colors.green[600]),
-                    SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        'Admin Notes: ${order.adminNotes!}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.green[700],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
+          ),
         ),
       ),
     );

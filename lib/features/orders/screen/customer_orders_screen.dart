@@ -12,8 +12,9 @@ class CustomerOrdersScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final CustomerOrdersController controller = Get.put(CustomerOrdersController());
-    
+    final CustomerOrdersController controller =
+        Get.put(CustomerOrdersController());
+
     // Ensure NavigationController is available
     NavigationController navController;
     try {
@@ -78,12 +79,12 @@ class CustomerOrdersScreen extends StatelessWidget {
         );
       }),
       bottomNavigationBar: Obx(() => CustomNavbar(
-        currentIndex: navController.currentIndex.value,
-        onTap: (index) {
-          navController.changeTab(index);
-          Get.back(); // Go back to the main navigation screen
-        },
-      )),
+            currentIndex: navController.currentIndex.value,
+            onTap: (index) {
+              navController.changeTab(index);
+              Get.back(); // Go back to the main navigation screen
+            },
+          )),
       extendBody: true,
     );
   }
@@ -139,7 +140,8 @@ class CustomerOrdersScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderCard(OrderModel order, CustomerOrdersController controller) {
+  Widget _buildOrderCard(
+      OrderModel order, CustomerOrdersController controller) {
     return Container(
       margin: EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -147,7 +149,7 @@ class CustomerOrdersScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: Offset(0, 2),
           ),
@@ -184,7 +186,8 @@ class CustomerOrdersScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        DateFormat('MMM dd, yyyy • hh:mm a').format(order.orderDate),
+                        DateFormat('MMM dd, yyyy • hh:mm a')
+                            .format(order.orderDate),
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[600],
@@ -203,7 +206,7 @@ class CustomerOrdersScreen extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Order Items
           Padding(
             padding: EdgeInsets.all(16),
@@ -235,7 +238,7 @@ class CustomerOrdersScreen extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Order Summary
           Container(
             padding: EdgeInsets.all(16),
@@ -291,7 +294,8 @@ class CustomerOrdersScreen extends StatelessWidget {
                       SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () => _showCancelOrderDialog(order, controller),
+                          onPressed: () =>
+                              _showCancelOrderDialog(order, controller),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red[600],
                             shape: RoundedRectangleBorder(
@@ -322,7 +326,7 @@ class CustomerOrdersScreen extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: status.color.withOpacity(0.1),
+        color: status.color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -357,7 +361,8 @@ class CustomerOrdersScreen extends StatelessWidget {
                     color: Colors.grey[200],
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.image_not_supported, color: Colors.grey[400], size: 20),
+                  child: Icon(Icons.image_not_supported,
+                      color: Colors.grey[400], size: 20),
                 );
               },
             ),
@@ -413,7 +418,7 @@ class CustomerOrdersScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            
+
             Padding(
               padding: EdgeInsets.all(20),
               child: Column(
@@ -428,13 +433,15 @@ class CustomerOrdersScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 20),
-                  
                   _buildDetailRow('Order ID', order.id),
                   _buildDetailRow('Status', order.status.displayName),
-                  _buildDetailRow('Order Date', DateFormat('MMM dd, yyyy • hh:mm a').format(order.orderDate)),
+                  _buildDetailRow(
+                      'Order Date',
+                      DateFormat('MMM dd, yyyy • hh:mm a')
+                          .format(order.orderDate)),
                   _buildDetailRow('Payment Method', order.paymentMethod),
-                  _buildAddressRow('Delivery Address', '${order.shippingAddress}, ${order.city}, ${order.state} ${order.zipCode}'),
-                  
+                  _buildAddressRow('Delivery Address',
+                      '${order.shippingAddress}, ${order.city}, ${order.state} ${order.zipCode}'),
                   SizedBox(height: 20),
                   Text(
                     'Price Breakdown',
@@ -445,10 +452,14 @@ class CustomerOrdersScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 12),
-                  _buildDetailRow('Subtotal', '\$${order.subtotal.toStringAsFixed(2)}'),
-                  _buildDetailRow('Delivery Fee', '\$${order.deliveryFee.toStringAsFixed(2)}'),
+                  _buildDetailRow(
+                      'Subtotal', '\$${order.subtotal.toStringAsFixed(2)}'),
+                  _buildDetailRow('Delivery Fee',
+                      '\$${order.deliveryFee.toStringAsFixed(2)}'),
                   Divider(),
-                  _buildDetailRow('Total Amount', '\$${order.totalAmount.toStringAsFixed(2)}', isTotal: true),
+                  _buildDetailRow('Total Amount',
+                      '\$${order.totalAmount.toStringAsFixed(2)}',
+                      isTotal: true),
                 ],
               ),
             ),
@@ -526,7 +537,8 @@ class CustomerOrdersScreen extends StatelessWidget {
     );
   }
 
-  void _showCancelOrderDialog(OrderModel order, CustomerOrdersController controller) {
+  void _showCancelOrderDialog(
+      OrderModel order, CustomerOrdersController controller) {
     Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

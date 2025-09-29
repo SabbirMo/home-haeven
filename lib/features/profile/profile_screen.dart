@@ -3,7 +3,10 @@ import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:home_haven/core/assets/app_colors.dart';
 import 'package:home_haven/core/router/app_routers.dart';
-import 'package:home_haven/features/orders/screen/customer_orders_screen.dart';
+import 'package:home_haven/features/orders/screen/customer_order_screen.dart';
+import 'package:home_haven/features/profile/screen/edit_profile_screen.dart';
+import 'package:home_haven/features/wishlist/screen/wishlist_screen.dart';
+import 'package:home_haven/features/wishlist/controller/wishlist_controller.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -28,7 +31,7 @@ class ProfileScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.grey.withValues(alpha: 0.1),
                       blurRadius: 10,
                       offset: Offset(0, 2),
                     ),
@@ -38,7 +41,7 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 40,
-                      backgroundColor: AppColors.primary.withOpacity(0.1),
+                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                       backgroundImage: user?.photoURL != null
                           ? NetworkImage(user!.photoURL!)
                           : null,
@@ -72,7 +75,7 @@ class ProfileScreen extends StatelessWidget {
                       padding:
                           EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -97,15 +100,22 @@ class ProfileScreen extends StatelessWidget {
                   Icons.edit_rounded,
                   'Edit Profile',
                   'Update your personal information',
-                  () => Get.snackbar(
-                      'Coming Soon', 'Edit profile feature coming soon!'),
+                  () => Get.to(() => EditProfileScreen()),
                 ),
                 _buildMenuItem(
                   Icons.shopping_bag_rounded,
                   'Order History',
                   'View your past orders',
-                  () => Get.snackbar(
-                      'Coming Soon', 'Order history feature coming soon!'),
+                  () {
+                    // Navigate to customer order screen using direct navigation
+                    // This avoids the bottom navigation restart issue
+                    try {
+                      Get.to(() => CustomerOrderScreen());
+                    } catch (e) {
+                      // Fallback to router navigation if direct navigation fails
+                      Get.toNamed(RouterConstant.customerOrders);
+                    }
+                  },
                 ),
                 _buildMenuItem(
                   Icons.location_on_rounded,
@@ -114,6 +124,7 @@ class ProfileScreen extends StatelessWidget {
                   () => Get.snackbar(
                       'Coming Soon', 'Address management coming soon!'),
                 ),
+                _buildWishlistMenuItem(),
               ]),
 
               SizedBox(height: 16),
@@ -190,7 +201,7 @@ class ProfileScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
+            color: Colors.grey.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: Offset(0, 2),
           ),
@@ -225,7 +236,7 @@ class ProfileScreen extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.1),
+          color: AppColors.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(
@@ -255,6 +266,71 @@ class ProfileScreen extends StatelessWidget {
         color: Colors.grey[400],
       ),
     );
+  }
+
+  Widget _buildWishlistMenuItem() {
+    final WishlistController wishlistController = Get.put(WishlistController());
+
+    return Obx(() => ListTile(
+          onTap: () => Get.to(() => WishlistScreen()),
+          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+          leading: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.red.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              Icons.favorite,
+              color: AppColors.red,
+              size: 20,
+            ),
+          ),
+          title: Row(
+            children: [
+              Text(
+                'My Wishlist',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              if (wishlistController.itemCount > 0)
+                Container(
+                  margin: EdgeInsets.only(left: 8),
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.red,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${wishlistController.itemCount}',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          subtitle: Text(
+            wishlistController.itemCount > 0
+                ? '${wishlistController.itemCount} items saved'
+                : 'Save your favorite products',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+          trailing: Icon(
+            Icons.arrow_forward_ios_rounded,
+            size: 16,
+            color: Colors.grey[400],
+          ),
+        ));
   }
 
   void _showLogoutDialog(BuildContext context) {

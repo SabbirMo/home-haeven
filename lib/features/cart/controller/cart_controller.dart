@@ -50,15 +50,6 @@ class CartController extends GetxController {
       double parsedPrice = double.tryParse(cleanOfferPrice) ?? 0.0;
       double parsedOriginalPrice = double.tryParse(cleanRegularPrice) ?? 0.0;
 
-      print('Debug - Adding to cart:');
-      print('Product: ${product.title}');
-      print('Raw Offer Price: "${product.offerPrice}"');
-      print('Clean Offer Price: "$cleanOfferPrice"');
-      print('Raw Regular Price: "${product.regularPrice}"');
-      print('Clean Regular Price: "$cleanRegularPrice"');
-      print('Parsed Price: $parsedPrice');
-      print('Parsed Original Price: $parsedOriginalPrice');
-
       CartModel newItem = CartModel(
         id: product.id,
         name: product.title,
@@ -88,10 +79,6 @@ class CartController extends GetxController {
     }
 
     cartItems.removeWhere((item) => item.id == itemId && item.color == color);
-
-    if (itemName.isNotEmpty) {
-      print('Removed from cart: $itemName');
-    }
   }
 
   // Update quantity

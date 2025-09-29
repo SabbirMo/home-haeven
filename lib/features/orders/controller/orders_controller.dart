@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_types_as_parameter_names
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,7 +10,7 @@ class OrdersController extends GetxController {
 
   var orders = <OrderModel>[].obs;
   var isLoading = false.obs;
-  var selectedStatus = OrderStatus.pending.obs;
+  var selectedStatus = Rxn<OrderStatus>();
 
   @override
   void onInit() {
@@ -47,10 +49,6 @@ class OrdersController extends GetxController {
       {String? adminNotes}) async {
     try {
       isLoading.value = true;
-      print('\n🔄 UPDATING ORDER STATUS');
-      print('📋 Order ID: $orderId');
-      print('🏷️ New Status: ${newStatus.displayName}');
-      print('📝 Admin Notes: ${adminNotes ?? 'None'}');
 
       Map<String, dynamic> updateData = {
         'status': newStatus.toString().split('.').last,
@@ -101,12 +99,9 @@ class OrdersController extends GetxController {
         colorText: Colors.green[800],
         duration: Duration(seconds: 4),
       );
-
-      print('✅ Order status updated successfully');
     } catch (e) {
-      print('❌ Error updating order status: $e');
       Get.snackbar(
-        '❌ Update Failed',
+        ' Update Failed',
         'Failed to update order status: ${e.toString()}',
         backgroundColor: Colors.red[100],
         colorText: Colors.red[800],
@@ -135,12 +130,45 @@ class OrdersController extends GetxController {
   }
 
   List<OrderModel> get filteredOrders {
-    if (selectedStatus.value == OrderStatus.pending) {
-      return orders
-          .where((order) => order.status == OrderStatus.pending)
-          .toList();
+    // If selectedStatus is null or we want to show all orders, return all
+    if (selectedStatus.value == null) {
+      return orders;
     }
-    return orders;
+
+    switch (selectedStatus.value) {
+      case OrderStatus.pending:
+        final pendingList = orders
+            .where((order) => order.status == OrderStatus.pending)
+            .toList();
+        return pendingList;
+      case OrderStatus.approved:
+        final approvedList = orders
+            .where((order) => order.status == OrderStatus.approved)
+            .toList();
+        return approvedList;
+      case OrderStatus.processing:
+        final processingList = orders
+            .where((order) => order.status == OrderStatus.processing)
+            .toList();
+        return processingList;
+      case OrderStatus.shipped:
+        final shippedList = orders
+            .where((order) => order.status == OrderStatus.shipped)
+            .toList();
+        return shippedList;
+      case OrderStatus.delivered:
+        final deliveredList = orders
+            .where((order) => order.status == OrderStatus.delivered)
+            .toList();
+        return deliveredList;
+      case OrderStatus.cancelled:
+        final cancelledList = orders
+            .where((order) => order.status == OrderStatus.cancelled)
+            .toList();
+        return cancelledList;
+      default:
+        return orders; // Show all orders
+    }
   }
 
   int get totalOrders => orders.length;
@@ -155,8 +183,67 @@ class OrdersController extends GetxController {
       .where((order) => order.status != OrderStatus.cancelled)
       .fold(0.0, (sum, order) => sum + order.totalAmount);
 
+  // Product-based order statistics
+  int get totalProductsOrdered {
+    return orders.where((order) => order.status != OrderStatus.cancelled).fold(
+        0,
+        (sum, order) =>
+            sum +
+            order.items.fold(0, (itemSum, item) => itemSum + item.quantity));
+  }
+
+  int get totalUniqueProductsOrdered {
+    Set<String> uniqueProductIds = {};
+    for (var order in orders) {
+      if (order.status != OrderStatus.cancelled) {
+        for (var item in order.items) {
+          uniqueProductIds.add(item.id); // Assuming cart item has product id
+        }
+      }
+    }
+    return uniqueProductIds.length;
+  }
+
+  List<Map<String, dynamic>> get topOrderedProducts {
+    Map<String, Map<String, dynamic>> productStats = {};
+
+    // Collect product statistics from orders
+    for (var order in orders) {
+      if (order.status != OrderStatus.cancelled) {
+        for (var item in order.items) {
+          String productKey = '${item.name}_${item.id}';
+          if (productStats.containsKey(productKey)) {
+            productStats[productKey]!['quantity'] += item.quantity;
+            productStats[productKey]!['orders'] += 1;
+            productStats[productKey]!['revenue'] +=
+                (item.price * item.quantity);
+          } else {
+            productStats[productKey] = {
+              'name': item.name,
+              'image': item.image,
+              'quantity': item.quantity,
+              'orders': 1,
+              'revenue': (item.price * item.quantity),
+              'price': item.price,
+            };
+          }
+        }
+      }
+    }
+
+    // Convert to list and sort by quantity ordered
+    List<Map<String, dynamic>> topProducts = productStats.values.toList();
+    topProducts.sort((a, b) => b['quantity'].compareTo(a['quantity']));
+
+    return topProducts.take(5).toList(); // Return top 5 products
+  }
+
   void filterByStatus(OrderStatus status) {
     selectedStatus.value = status;
+  }
+
+  void showAllOrders() {
+    selectedStatus.value = null; // Set to null to show all orders
   }
 
   void showOrderActionDialog(OrderModel order) {
@@ -176,7 +263,7 @@ class OrdersController extends GetxController {
               Container(
                 padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: order.status.color.withOpacity(0.1),
+                  color: order.status.color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
@@ -324,6 +411,8 @@ class OrdersController extends GetxController {
                 fontSize: 14,
                 color: Colors.black87,
               ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -403,6 +492,7 @@ class OrdersController extends GetxController {
                     step['completed'] as bool,
                     step == timeline.last,
                   ))
+              // ignore: unnecessary_to_list_in_spreads
               .toList(),
         ],
       ),
@@ -450,6 +540,8 @@ class OrdersController extends GetxController {
                     fontWeight: FontWeight.w600,
                     color: completed ? Colors.black87 : Colors.grey[600],
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   subtitle,
@@ -457,6 +549,8 @@ class OrdersController extends GetxController {
                     fontSize: 12,
                     color: Colors.grey[600],
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 if (date != null)
                   Text(

@@ -25,6 +25,8 @@ class HomeScreen extends StatelessWidget {
 
     // Add a variable to track if search is active
     final TextEditingController searchController = TextEditingController();
+    // Add a FocusNode to control focus behavior
+    final FocusNode searchFocusNode = FocusNode();
 
     return Scaffold(
       body: SafeArea(
@@ -53,6 +55,8 @@ class HomeScreen extends StatelessWidget {
                               ),
                               child: Obx(() => TextField(
                                     controller: searchController,
+                                    focusNode:
+                                        searchFocusNode, // Add focus node
                                     onChanged: (value) {
                                       controller.searchProduct(value);
                                     },
@@ -358,8 +362,9 @@ class HomeScreen extends StatelessWidget {
                                                                 color: isWishlisted
                                                                     ? AppColors
                                                                         .red
-                                                                        .withOpacity(
-                                                                            0.1)
+                                                                        .withValues(
+                                                                            alpha:
+                                                                                0.1)
                                                                     : Colors.grey[
                                                                         100],
                                                                 borderRadius:
@@ -424,8 +429,8 @@ class HomeScreen extends StatelessWidget {
                                                               decoration:
                                                                   BoxDecoration(
                                                                 color: isInCart
-                                                                    ? Colors
-                                                                        .green
+                                                                    ? AppColors
+                                                                        .red
                                                                     : AppColors
                                                                         .primary,
                                                                 borderRadius:
@@ -592,7 +597,7 @@ class HomeScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: Offset(0, 2),
             ),

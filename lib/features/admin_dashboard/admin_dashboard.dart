@@ -15,6 +15,7 @@ class AdminDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AdminProductController controller = Get.put(AdminProductController());
+    final OrdersController ordersController = Get.put(OrdersController());
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -30,6 +31,19 @@ class AdminDashboard extends StatelessWidget {
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.white),
         actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () {
+              ordersController.fetchOrders();
+              Get.snackbar(
+                'Refreshing',
+                'Updating order statistics...',
+                backgroundColor: Colors.blue[100],
+                colorText: Colors.blue[800],
+                duration: Duration(seconds: 2),
+              );
+            },
+          ),
           _buildUserProfileMenu(),
         ],
       ),
@@ -47,7 +61,11 @@ class AdminDashboard extends StatelessWidget {
             SizedBox(height: 24),
 
             // Orders Management Section
-            _buildOrdersManagementSection(),
+            _buildOrdersManagementSection(ordersController),
+            SizedBox(height: 24),
+
+            // Recent Pending Orders Section
+            _buildRecentPendingOrdersSection(ordersController),
             SizedBox(height: 24),
 
             // Recent Products
@@ -69,7 +87,353 @@ class AdminDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildOrdersManagementSection() {
+  Widget _buildRecentPendingOrdersSection(OrdersController ordersController) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Recent Orders',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    Get.to(() => OrdersManagementScreen());
+                    Future.delayed(Duration(milliseconds: 100), () {
+                      try {
+                        Get.find<OrdersController>()
+                            .filterByStatus(OrderStatus.pending);
+                      } catch (e) {}
+                    });
+                  },
+                  icon: Icon(Icons.arrow_forward, size: 16),
+                  label: Text('View All'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            Obx(() {
+              final pendingOrders = ordersController.orders
+                  .where((order) => order.status == OrderStatus.pending)
+                  .take(3)
+                  .toList();
+
+              if (pendingOrders.isEmpty) {
+                return SizedBox(
+                  height: 100,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.pending_actions_outlined,
+                          size: 48,
+                          color: Colors.grey[400],
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'No pending orders',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: pendingOrders.length,
+                itemBuilder: (context, index) {
+                  final order = pendingOrders[index];
+                  return _buildPendingOrderTile(order, ordersController);
+                },
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPendingOrderTile(
+      OrderModel order, OrdersController ordersController) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.orange[50]!,
+            Colors.white,
+          ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Order Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Order #${order.id.substring(0, 8)}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      order.customerName,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      _formatDate(order.orderDate),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '৳${order.totalAmount.toStringAsFixed(0)}',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  Text(
+                    '${order.items.length} items',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: 12),
+
+          // Customer Info
+          Row(
+            children: [
+              Icon(Icons.phone, size: 16, color: Colors.grey[600]),
+              SizedBox(width: 4),
+              Text(
+                order.customerPhone,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[700],
+                ),
+              ),
+              SizedBox(width: 16),
+              Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
+              SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  '${order.city}, ${order.state}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[700],
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12),
+
+          // Action Buttons
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () =>
+                      _showOrderDetailsDialog(order, ordersController),
+                  icon: Icon(Icons.visibility, size: 16),
+                  label: Text('View Details'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.blue,
+                    side: BorderSide(color: Colors.blue),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () =>
+                      _showQuickApproveDialog(order, ordersController),
+                  icon: Icon(Icons.check_circle, size: 16),
+                  label: Text('Approve'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+  void _showOrderDetailsDialog(
+      OrderModel order, OrdersController ordersController) {
+    ordersController.showOrderActionDialog(order);
+  }
+
+  void _showQuickApproveDialog(
+      OrderModel order, OrdersController ordersController) {
+    final TextEditingController notesController = TextEditingController();
+
+    Get.dialog(
+      AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 24),
+            SizedBox(width: 12),
+            Text('Approve Order'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Order Summary
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Order #${order.id.substring(0, 8)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text('Customer: ${order.customerName}'),
+                  Text('Amount: ৳${order.totalAmount.toStringAsFixed(0)}'),
+                  Text('Items: ${order.items.length}'),
+                ],
+              ),
+            ),
+            SizedBox(height: 16),
+
+            Text(
+              'Are you sure you want to approve this order?',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 16),
+
+            TextField(
+              controller: notesController,
+              decoration: InputDecoration(
+                labelText: 'Admin Notes (Optional)',
+                hintText: 'Add any notes for the customer...',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.note_add),
+              ),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Get.back();
+              ordersController.updateOrderStatus(
+                order.id,
+                OrderStatus.approved,
+                adminNotes: notesController.text.trim().isEmpty
+                    ? 'Approved from Admin Dashboard'
+                    : notesController.text.trim(),
+              );
+
+              // Show success message
+              Get.snackbar(
+                '✅ Order Approved',
+                'Order #${order.id.substring(0, 8)} has been approved successfully!',
+                backgroundColor: Colors.green[100],
+                colorText: Colors.green[800],
+                duration: Duration(seconds: 3),
+                icon: Icon(Icons.check_circle, color: Colors.green),
+              );
+            },
+            icon: Icon(Icons.check_circle, color: Colors.white),
+            label: Text('Approve Order'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrdersManagementSection(OrdersController ordersController) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -102,45 +466,81 @@ class AdminDashboard extends StatelessWidget {
               ],
             ),
             SizedBox(height: 16),
-            
+
             // Orders Stats
-            GetBuilder<OrdersController>(
-              init: OrdersController(),
-              builder: (ordersController) {
-                return Row(
-                  children: [
-                    Expanded(
-                      child: _buildOrderStatCard(
-                        'Total Orders',
-                        ordersController.totalOrders.toString(),
-                        Icons.shopping_bag,
-                        Colors.blue,
+            Obx(() {
+              return Column(
+                children: [
+                  // Order Status Stats
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildOrderStatCard(
+                          'Total Orders',
+                          ordersController.totalOrders.toString(),
+                          Icons.shopping_bag,
+                          Colors.blue,
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: _buildOrderStatCard(
-                        'Pending',
-                        ordersController.pendingOrders.toString(),
-                        Icons.pending,
-                        Colors.orange,
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: _buildOrderStatCard(
+                          'Pending',
+                          ordersController.pendingOrders.toString(),
+                          Icons.pending,
+                          Colors.orange,
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: _buildOrderStatCard(
-                        'Approved',
-                        ordersController.approvedOrders.toString(),
-                        Icons.check_circle,
-                        Colors.green,
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: _buildOrderStatCard(
+                          'Approved',
+                          ordersController.approvedOrders.toString(),
+                          Icons.check_circle,
+                          Colors.green,
+                        ),
                       ),
-                    ),
-                  ],
-                );
-              },
-            ),
+                    ],
+                  ),
+                  SizedBox(height: 12),
+
+                  // Product Order Stats
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildOrderStatCard(
+                          'Products Ordered',
+                          ordersController.totalProductsOrdered.toString(),
+                          Icons.inventory_2,
+                          Colors.purple,
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: _buildOrderStatCard(
+                          'Unique Products',
+                          ordersController.totalUniqueProductsOrdered
+                              .toString(),
+                          Icons.category,
+                          Colors.teal,
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: _buildOrderStatCard(
+                          'Revenue',
+                          '৳${ordersController.totalRevenue.toStringAsFixed(0)}',
+                          Icons.monetization_on,
+                          Colors.green[700]!,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            }),
             SizedBox(height: 16),
-            
+
             // Quick Actions for Orders
             Row(
               children: [
@@ -163,7 +563,8 @@ class AdminDashboard extends StatelessWidget {
                       // Auto-filter to pending orders after navigation
                       Future.delayed(Duration(milliseconds: 100), () {
                         try {
-                          Get.find<OrdersController>().filterByStatus(OrderStatus.pending);
+                          Get.find<OrdersController>()
+                              .filterByStatus(OrderStatus.pending);
                         } catch (e) {
                           // Controller not found, ignore
                         }
@@ -179,7 +580,8 @@ class AdminDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildOrderStatCard(
+      String title, String value, IconData icon, Color color) {
     return Container(
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -214,7 +616,7 @@ class AdminDashboard extends StatelessWidget {
 
   Widget _buildUserProfileMenu() {
     final user = FirebaseAuth.instance.currentUser;
-    
+
     return Padding(
       padding: EdgeInsets.only(right: 16),
       child: PopupMenuButton<String>(
@@ -236,9 +638,8 @@ class AdminDashboard extends StatelessWidget {
           child: CircleAvatar(
             radius: 20,
             backgroundColor: Colors.white,
-            backgroundImage: user?.photoURL != null 
-                ? NetworkImage(user!.photoURL!) 
-                : null,
+            backgroundImage:
+                user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
             child: user?.photoURL == null
                 ? Icon(
                     Icons.person,
@@ -263,7 +664,8 @@ class AdminDashboard extends StatelessWidget {
             value: 'settings',
             child: Row(
               children: [
-                Icon(Icons.settings_outlined, color: Colors.grey[700], size: 20),
+                Icon(Icons.settings_outlined,
+                    color: Colors.grey[700], size: 20),
                 SizedBox(width: 12),
                 Text('Settings'),
               ],
@@ -307,7 +709,7 @@ class AdminDashboard extends StatelessWidget {
 
   void _showUserProfileDialog() {
     final user = FirebaseAuth.instance.currentUser;
-    
+
     Get.dialog(
       AlertDialog(
         title: Row(
@@ -335,7 +737,8 @@ class AdminDashboard extends StatelessWidget {
             SizedBox(height: 12),
             _buildProfileRow('Account Type', 'Administrator'),
             SizedBox(height: 12),
-            _buildProfileRow('Last Login', _formatLastLogin(user?.metadata.lastSignInTime)),
+            _buildProfileRow(
+                'Last Login', _formatLastLogin(user?.metadata.lastSignInTime)),
           ],
         ),
         actions: [
@@ -375,10 +778,10 @@ class AdminDashboard extends StatelessWidget {
 
   String _formatLastLogin(DateTime? lastLogin) {
     if (lastLogin == null) return 'N/A';
-    
+
     final now = DateTime.now();
     final difference = now.difference(lastLogin);
-    
+
     if (difference.inDays > 0) {
       return '${difference.inDays} days ago';
     } else if (difference.inHours > 0) {
@@ -530,13 +933,13 @@ class AdminDashboard extends StatelessWidget {
 
       // Sign out from Firebase
       await FirebaseAuth.instance.signOut();
-      
+
       // Close loading dialog
       Get.back();
-      
+
       // Navigate to login screen
       Get.offAllNamed('/login');
-      
+
       // Show success message
       Get.snackbar(
         'Success',
@@ -548,7 +951,7 @@ class AdminDashboard extends StatelessWidget {
     } catch (e) {
       // Close loading dialog
       Get.back();
-      
+
       // Show error message
       Get.snackbar(
         'Error',
@@ -718,7 +1121,7 @@ class AdminDashboard extends StatelessWidget {
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -728,7 +1131,7 @@ class AdminDashboard extends StatelessWidget {
                 Text(
                   'Recent Products',
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
                   ),
@@ -746,8 +1149,8 @@ class AdminDashboard extends StatelessWidget {
             SizedBox(height: 16),
             Obx(() {
               if (controller.products.isEmpty) {
-                return Container(
-                  height: 100,
+                return SizedBox(
+                  height: 80,
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -1055,27 +1458,34 @@ class _ProductFormDialog extends StatelessWidget {
                     // Category Selection Dropdown
                     _buildCategoryDropdown(controller),
                     SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildTextField(
+                    Obx(() => controller.selectedCategory.value == 'special'
+                        ? Row(
+                            children: [
+                              Expanded(
+                                child: _buildTextField(
+                                  controller: controller.regularPriceController,
+                                  label: 'Regular Price',
+                                  icon: Icons.attach_money,
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: _buildTextField(
+                                  controller: controller.offerPriceController,
+                                  label: 'Offer Price',
+                                  icon: Icons.local_offer,
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ),
+                            ],
+                          )
+                        : _buildTextField(
                             controller: controller.regularPriceController,
-                            label: 'Regular Price',
+                            label: 'Price',
                             icon: Icons.attach_money,
                             keyboardType: TextInputType.number,
-                          ),
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: _buildTextField(
-                            controller: controller.offerPriceController,
-                            label: 'Offer Price',
-                            icon: Icons.local_offer,
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                      ],
-                    ),
+                          )),
                     SizedBox(height: 16),
                     // Conditional fields for Special category only
                     Obx(() => controller.selectedCategory.value == 'special'
@@ -1265,6 +1675,4 @@ class _ProductFormDialog extends StatelessWidget {
         return Colors.grey;
     }
   }
-
-
 }

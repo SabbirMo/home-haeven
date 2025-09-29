@@ -48,18 +48,16 @@ class FurnitureProductScreen extends StatelessWidget {
         centerTitle: true,
         actions: [
           Obx(() => IconButton(
-            icon: Icon(
-              isSearching.value ? Icons.close : Icons.search, 
-              color: Colors.black87
-            ),
-            onPressed: () {
-              isSearching.toggle();
-              if (!isSearching.value) {
-                searchQuery.value = '';
-                searchController.clear();
-              }
-            },
-          )),
+                icon: Icon(isSearching.value ? Icons.close : Icons.search,
+                    color: Colors.black87),
+                onPressed: () {
+                  isSearching.toggle();
+                  if (!isSearching.value) {
+                    searchQuery.value = '';
+                    searchController.clear();
+                  }
+                },
+              )),
         ],
       ),
       body: SafeArea(
@@ -72,8 +70,9 @@ class FurnitureProductScreen extends StatelessWidget {
           // Apply search filter
           if (searchQuery.value.isNotEmpty) {
             furnitureProducts = furnitureProducts
-                .where((item) =>
-                    item.title.toLowerCase().contains(searchQuery.value.toLowerCase()))
+                .where((item) => item.title
+                    .toLowerCase()
+                    .contains(searchQuery.value.toLowerCase()))
                 .toList();
           }
 
@@ -151,7 +150,7 @@ class FurnitureProductScreen extends StatelessWidget {
                 SizedBox(height: 16),
 
                 // Search Bar
-                Obx(() => isSearching.value 
+                Obx(() => isSearching.value
                     ? Container(
                         margin: EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
@@ -159,7 +158,7 @@ class FurnitureProductScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withOpacity(0.1),
+                              color: Colors.grey.withValues(alpha: 0.1),
                               blurRadius: 10,
                               offset: Offset(0, 2),
                             ),
@@ -170,11 +169,12 @@ class FurnitureProductScreen extends StatelessWidget {
                           onChanged: (value) => searchQuery.value = value,
                           decoration: InputDecoration(
                             hintText: 'Search furniture...',
-                            prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+                            prefixIcon:
+                                Icon(Icons.search, color: Colors.grey[400]),
                             border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
                           ),
-                          autofocus: true,
                         ),
                       )
                     : SizedBox.shrink()),
@@ -192,21 +192,23 @@ class FurnitureProductScreen extends StatelessWidget {
 
                 // Products Grid or No Results
                 Expanded(
-                  child: furnitureProducts.isEmpty && searchQuery.value.isNotEmpty
-                      ? _buildNoResultsFound()
-                      : GridView.builder(
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.6,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                          ),
-                          itemCount: furnitureProducts.length,
-                          itemBuilder: (context, index) {
-                            final item = furnitureProducts[index];
-                            return _buildProductCard(item);
-                          },
-                        ),
+                  child:
+                      furnitureProducts.isEmpty && searchQuery.value.isNotEmpty
+                          ? _buildNoResultsFound()
+                          : GridView.builder(
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio: 0.6,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                              ),
+                              itemCount: furnitureProducts.length,
+                              itemBuilder: (context, index) {
+                                final item = furnitureProducts[index];
+                                return _buildProductCard(item);
+                              },
+                            ),
                 ),
               ],
             ),
@@ -227,7 +229,7 @@ class FurnitureProductScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.08),
+              color: Colors.grey.withValues(alpha: 0.08),
               blurRadius: 10,
               offset: Offset(0, 2),
             ),
@@ -340,7 +342,7 @@ class FurnitureProductScreen extends StatelessWidget {
                       children: [
                         // Wishlist Button
                         Expanded(
-                          child: Container(
+                          child: SizedBox(
                             height: 32,
                             child: GetBuilder<WishlistController>(
                               init: WishlistController(),
@@ -354,7 +356,7 @@ class FurnitureProductScreen extends StatelessWidget {
                                   child: Container(
                                     decoration: BoxDecoration(
                                       color: isWishlisted
-                                          ? AppColors.red.withOpacity(0.1)
+                                          ? AppColors.red.withValues(alpha: 0.1)
                                           : Colors.grey[100],
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
@@ -402,7 +404,7 @@ class FurnitureProductScreen extends StatelessWidget {
                                   child: Container(
                                     decoration: BoxDecoration(
                                       color: isInCart
-                                          ? Colors.green
+                                          ? AppColors.red
                                           : AppColors.primary,
                                       borderRadius: BorderRadius.circular(8),
                                     ),

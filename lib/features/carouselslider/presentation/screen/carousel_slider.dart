@@ -24,13 +24,13 @@ class CarouselSliderScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
+                      color: Colors.black.withValues(alpha: 0.15),
                       blurRadius: 20,
                       offset: Offset(0, 8),
                       spreadRadius: 0,
                     ),
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       blurRadius: 15,
                       offset: Offset(0, 4),
                       spreadRadius: 0,
@@ -53,7 +53,8 @@ class CarouselSliderScreen extends StatelessWidget {
                           viewportFraction: 1.0,
                           enlargeCenterPage: false,
                           autoPlayInterval: Duration(seconds: 4),
-                          autoPlayAnimationDuration: Duration(milliseconds: 1000),
+                          autoPlayAnimationDuration:
+                              Duration(milliseconds: 1000),
                           autoPlayCurve: Curves.easeInOutCubic,
                           pauseAutoPlayOnTouch: true,
                           onPageChanged: (index, reason) {
@@ -61,7 +62,7 @@ class CarouselSliderScreen extends StatelessWidget {
                           },
                         ),
                       ),
-                      
+
                       // Gradient Overlay for better text readability
                       Positioned(
                         bottom: 0,
@@ -75,13 +76,13 @@ class CarouselSliderScreen extends StatelessWidget {
                               end: Alignment.bottomCenter,
                               colors: [
                                 Colors.transparent,
-                                Colors.black.withOpacity(0.7),
+                                Colors.black.withValues(alpha: 0.7),
                               ],
                             ),
                           ),
                         ),
                       ),
-                      
+
                       // Content Overlay
                       Positioned(
                         bottom: 60,
@@ -89,7 +90,7 @@ class CarouselSliderScreen extends StatelessWidget {
                         right: 20,
                         child: _buildCarouselContent(controller),
                       ),
-                      
+
                       // Enhanced Page Indicator - Inside Carousel
                       Positioned(
                         bottom: 20,
@@ -102,9 +103,14 @@ class CarouselSliderScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-              ).animate()
-                .fadeIn(duration: 600.ms, curve: Curves.easeOut)
-                .slideY(begin: 0.3, end: 0, duration: 800.ms, curve: Curves.easeOutBack),
+              )
+                  .animate()
+                  .fadeIn(duration: 600.ms, curve: Curves.easeOut)
+                  .slideY(
+                      begin: 0.3,
+                      end: 0,
+                      duration: 800.ms,
+                      curve: Curves.easeOutBack),
             ],
           ),
         );
@@ -126,7 +132,7 @@ class CarouselSliderScreen extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-          
+
           // Subtle Overlay for Premium Look
           Container(
             decoration: BoxDecoration(
@@ -134,22 +140,21 @@ class CarouselSliderScreen extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.black.withOpacity(0.1),
+                  Colors.black.withValues(alpha: 0.1),
                   Colors.transparent,
-                  Colors.black.withOpacity(0.2),
+                  Colors.black.withValues(alpha: 0.2),
                 ],
               ),
             ),
           ),
         ],
       ),
-    ).animate(target: controller.activeIndex == index ? 1 : 0)
-      .scale(
-        begin: Offset(0.95, 0.95),
-        end: Offset(1.0, 1.0),
-        duration: 600.ms,
-        curve: Curves.easeOut,
-      );
+    ).animate(target: controller.activeIndex == index ? 1 : 0).scale(
+          begin: Offset(0.95, 0.95),
+          end: Offset(1.0, 1.0),
+          duration: 600.ms,
+          curve: Curves.easeOut,
+        );
   }
 
   Widget _buildCarouselContent(MyCarouselSliderController controller) {
@@ -158,7 +163,7 @@ class CarouselSliderScreen extends StatelessWidget {
       'Modern Living Solutions',
       'Elegant Home Designs',
     ];
-    
+
     final descriptions = [
       'Discover our exclusive range of premium furniture',
       'Transform your space with modern designs',
@@ -176,34 +181,30 @@ class CarouselSliderScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
             shadows: [
               Shadow(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 offset: Offset(0, 2),
                 blurRadius: 4,
               ),
             ],
           ),
-        ).animate()
-          .fadeIn(duration: 400.ms, delay: 200.ms)
-          .slideX(begin: -0.3, end: 0, duration: 500.ms, curve: Curves.easeOut),
-        
+        ).animate().fadeIn(duration: 400.ms, delay: 200.ms).slideX(
+            begin: -0.3, end: 0, duration: 500.ms, curve: Curves.easeOut),
         SizedBox(height: 8),
-        
         Text(
           descriptions[controller.activeIndex],
           style: TextStyle(
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withValues(alpha: 0.9),
             fontSize: 14,
             shadows: [
               Shadow(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 offset: Offset(0, 1),
                 blurRadius: 2,
               ),
             ],
           ),
-        ).animate()
-          .fadeIn(duration: 400.ms, delay: 400.ms)
-          .slideX(begin: -0.3, end: 0, duration: 500.ms, curve: Curves.easeOut),
+        ).animate().fadeIn(duration: 400.ms, delay: 400.ms).slideX(
+            begin: -0.3, end: 0, duration: 500.ms, curve: Curves.easeOut),
       ],
     );
   }
@@ -212,15 +213,15 @@ class CarouselSliderScreen extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -235,16 +236,14 @@ class CarouselSliderScreen extends StatelessWidget {
           spacing: 10,
           radius: 12,
           activeDotColor: Colors.white,
-          dotColor: Colors.white.withOpacity(0.4),
+          dotColor: Colors.white.withValues(alpha: 0.4),
           expansionFactor: 2.5,
         ),
       ),
-    ).animate()
-      .fadeIn(duration: 500.ms, delay: 600.ms)
-      .scale(
-        begin: Offset(0.8, 0.8),
-        duration: 400.ms,
-        curve: Curves.easeOutBack,
-      );
+    ).animate().fadeIn(duration: 500.ms, delay: 600.ms).scale(
+          begin: Offset(0.8, 0.8),
+          duration: 400.ms,
+          curve: Curves.easeOutBack,
+        );
   }
 }

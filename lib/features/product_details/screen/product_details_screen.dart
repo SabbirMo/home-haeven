@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_null_comparison
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:home_haven/core/assets/app_colors.dart';
@@ -5,6 +7,7 @@ import 'package:home_haven/features/home/model/home_model.dart';
 import 'package:home_haven/features/onboarding/widget/custom_button.dart';
 import 'package:home_haven/features/cart/controller/cart_controller.dart';
 import 'package:home_haven/features/cart/my_cart_screen.dart';
+import 'package:home_haven/features/wishlist/controller/wishlist_controller.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final HomeModel product;
@@ -47,7 +50,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   Container(
                     height: 400,
                     width: double.infinity,
-                    margin: EdgeInsets.symmetric(horizontal: 20),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
@@ -61,47 +63,53 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     ),
                     child: Stack(
                       children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: ColorFiltered(
-                            colorFilter: ColorFilter.mode(
-                              _getSelectedColor().withOpacity(0.3),
-                              BlendMode.multiply,
-                            ),
-                            child: Image.network(
-                              widget.product.image,
-                              width: double.infinity,
-                              height: 400,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  width: double.infinity,
-                                  height: 400,
-                                  decoration: BoxDecoration(
-                                    color: _getSelectedColor().withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.chair,
-                                        color: _getSelectedColor(),
-                                        size: 100,
-                                      ),
-                                      SizedBox(height: 8),
-                                      Text(
-                                        'Sofa Preview',
-                                        style: TextStyle(
+                        // Center the image within the container
+                        Center(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: ColorFiltered(
+                              colorFilter: ColorFilter.mode(
+                                _getSelectedColor().withOpacity(0.3),
+                                BlendMode.multiply,
+                              ),
+                              child: Image.network(
+                                widget.product.image,
+                                width: double.infinity,
+                                height: 400,
+                                fit: BoxFit
+                                    .contain, // Changed from cover to contain to center the image
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    width: double.infinity,
+                                    height: 400,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          _getSelectedColor().withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.chair,
                                           color: _getSelectedColor(),
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
+                                          size: 100,
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
+                                        SizedBox(height: 8),
+                                        Text(
+                                          'Sofa Preview',
+                                          style: TextStyle(
+                                            color: _getSelectedColor(),
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),
@@ -295,43 +303,93 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               child: Row(
                 children: [
                   // Wishlist Button
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.gradient),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.favorite_border,
-                        color: AppColors.primary,
-                        size: 24,
-                      ),
-                      onPressed: () {
-                        Get.snackbar(
-                          'Added to Wishlist',
-                          '${widget.product.title} added to your wishlist',
-                          backgroundColor: Colors.grey[800],
-                          colorText: Colors.white,
-                          duration: Duration(seconds: 2),
-                        );
-                      },
-                    ),
+                  GetBuilder<WishlistController>(
+                    init: WishlistController(),
+                    builder: (wishlistController) {
+                      bool isWishlisted =
+                          wishlistController.isInWishlist(widget.product.id);
+                      return Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: isWishlisted
+                                ? AppColors.red
+                                : AppColors.gradient,
+                            width: isWishlisted ? 2 : 1,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          color: isWishlisted
+                              ? AppColors.red.withOpacity(0.1)
+                              : Colors.transparent,
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            isWishlisted
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: isWishlisted
+                                ? AppColors.red
+                                : AppColors.primary,
+                            size: 24,
+                          ),
+                          onPressed: () {
+                            wishlistController.toggleWishlist(widget.product);
+                          },
+                        ),
+                      );
+                    },
                   ),
 
                   SizedBox(width: 16),
 
                   // Add to Cart Button
                   Expanded(
-                    child: CustomButton(
-                      text: 'Add to Cart',
-                      onTap: () {
-                        final selectedColor = _getSelectedColorName();
-                        cartController.addToCart(widget.product, selectedColor);
-
-                        // Navigate to cart page
-                        Get.to(() => MyCartScreen());
+                    child: GetBuilder<CartController>(
+                      init: CartController(),
+                      builder: (controller) {
+                        bool isInCart = controller.isInCart(widget.product.id);
+                        return ElevatedButton(
+                          onPressed: () {
+                            if (!isInCart) {
+                              final selectedColor = _getSelectedColorName();
+                              controller.addToCart(
+                                  widget.product, selectedColor);
+                            } else {
+                              // Navigate to cart if already added
+                              Get.to(() => MyCartScreen());
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                isInCart ? AppColors.red : AppColors.primary,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                isInCart
+                                    ? Icons.check_circle
+                                    : Icons.shopping_cart_outlined,
+                                size: 20,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                isInCart ? 'Added to Cart' : 'Add to Cart',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
                       },
                     ),
                   ),
@@ -368,7 +426,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           },
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            width: 170,
+            width: MediaQuery.of(context).size.width * .43,
             decoration: BoxDecoration(
               border: Border.all(
                 color: isSelected ? Color(0xFF2E7D32) : Colors.grey[300]!,

@@ -112,7 +112,34 @@ class MyCartScreen extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 32),
             child: CustomButton(
               text: 'Start Shopping',
-              onTap: () => Get.back(),
+              onTap: () {
+                // Navigate to home screen through bottom navigation
+                try {
+                  final NavigationController navController =
+                      Get.find<NavigationController>();
+                  navController.changeTab(0); // Switch to home tab (index 0)
+
+                  // If we're in a standalone cart screen (not bottom nav), go back to main screen
+                  if (Navigator.canPop(Get.context!)) {
+                    Get.back();
+                  }
+
+                  Get.snackbar(
+                    'Let\'s Shop! 🛍️',
+                    'Browse our amazing products',
+                    backgroundColor: AppColors.primary.withOpacity(0.1),
+                    colorText: AppColors.primary,
+                    duration: Duration(seconds: 2),
+                    snackPosition: SnackPosition.BOTTOM,
+                    margin: EdgeInsets.all(16),
+                    borderRadius: 12,
+                    icon: Icon(Icons.shopping_bag, color: AppColors.primary),
+                  );
+                } catch (e) {
+                  // Fallback: Navigate to main screen with bottom navigation
+                  Get.offAllNamed('/mainScreen');
+                }
+              },
             ),
           ),
         ],
@@ -129,7 +156,7 @@ class MyCartScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
+            color: Colors.grey.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: Offset(0, 2),
           ),
@@ -359,7 +386,7 @@ class MyCartScreen extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: Offset(0, -5),
           ),

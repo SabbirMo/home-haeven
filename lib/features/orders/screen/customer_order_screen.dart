@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:home_haven/core/assets/app_colors.dart';
 import 'package:home_haven/features/orders/controller/customer_order_controller.dart';
 import 'package:home_haven/features/orders/model/order_model.dart';
+import 'package:home_haven/features/bottom_navbar/controller/navigation_controller.dart';
 
 class CustomerOrderScreen extends StatelessWidget {
   const CustomerOrderScreen({super.key});
@@ -194,9 +195,9 @@ class CustomerOrderScreen extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.3)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -214,7 +215,7 @@ class CustomerOrderScreen extends StatelessWidget {
             title,
             style: TextStyle(
               fontSize: 8,
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
             ),
             textAlign: TextAlign.center,
             maxLines: 1,
@@ -287,7 +288,7 @@ class CustomerOrderScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -331,10 +332,10 @@ class CustomerOrderScreen extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: order.status.color.withOpacity(0.1),
+                      color: order.status.color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                          color: order.status.color.withOpacity(0.3)),
+                          color: order.status.color.withValues(alpha: 0.3)),
                     ),
                     child: Text(
                       order.status.displayName,
@@ -494,6 +495,29 @@ class CustomerOrderScreen extends StatelessWidget {
                             ),
                           ),
                         ),
+                      if (order.status == OrderStatus.cancelled)
+                        Container(
+                          margin: EdgeInsets.only(right: 8),
+                          child: OutlinedButton(
+                            onPressed: () =>
+                                _showRestoreDialog(order, controller),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: Colors.green),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                            ),
+                            child: Text(
+                              'Reorder',
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
                       ElevatedButton(
                         onPressed: () =>
                             _showOrderDetailsDialog(order, controller),
@@ -542,7 +566,7 @@ class CustomerOrderScreen extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: order.status.color.withOpacity(0.1),
+                  color: order.status.color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
@@ -833,6 +857,33 @@ class CustomerOrderScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+              if (order.status == OrderStatus.cancelled)
+                Container(
+                  padding: EdgeInsets.all(20),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Get.back();
+                        _showRestoreDialog(order, controller);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Reorder This Order',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -861,6 +912,70 @@ class CustomerOrderScreen extends StatelessWidget {
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: Text('Cancel Order'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRestoreDialog(
+      OrderModel order, CustomerOrderController controller) {
+    Get.dialog(
+      AlertDialog(
+        title: Text('Reorder'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Do you want to place this order again?'),
+            SizedBox(height: 8),
+            Text(
+              'Order #${order.id.substring(0, 8)}',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Total: ৳${order.totalAmount.toStringAsFixed(0)}',
+              style: TextStyle(
+                color: Colors.green[700],
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 8),
+            Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                'This will restore your cancelled order back to pending status.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.blue[700],
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              controller.restoreOrder(order.id);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            child: Text(
+              'Reorder',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -927,8 +1042,31 @@ class CustomerOrderScreen extends StatelessWidget {
               SizedBox(width: 16),
               ElevatedButton(
                 onPressed: () {
-                  Get.back();
-                  // Navigate to home/shop
+                  // Navigate to home screen through bottom navigation
+                  try {
+                    final NavigationController navController =
+                        Get.find<NavigationController>();
+                    navController.changeTab(0); // Switch to home tab (index 0)
+
+                    // Go back to main screen if needed
+                    Get.back();
+
+                    Get.snackbar(
+                      'Happy Shopping! 🛍️',
+                      'Explore our products and place your first order',
+                      backgroundColor: AppColors.primary.withOpacity(0.1),
+                      colorText: AppColors.primary,
+                      duration: Duration(seconds: 2),
+                      snackPosition: SnackPosition.BOTTOM,
+                      margin: EdgeInsets.all(16),
+                      borderRadius: 12,
+                      icon: Icon(Icons.shopping_bag, color: AppColors.primary),
+                    );
+                  } catch (e) {
+                    // Fallback: Navigate to main screen
+                    Get.back();
+                    Get.offAllNamed('/mainScreen');
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,

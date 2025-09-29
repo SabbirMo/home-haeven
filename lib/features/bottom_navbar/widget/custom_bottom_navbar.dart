@@ -22,7 +22,7 @@ class CustomNavbar extends StatelessWidget {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: Offset(0, -5),
             spreadRadius: 0,
@@ -76,12 +76,12 @@ class CustomNavbar extends StatelessWidget {
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.white.withOpacity(0.6),
+                      color: Colors.white.withValues(alpha: 0.6),
                       blurRadius: 8,
                       spreadRadius: 1,
                     ),
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.2),
+                      color: AppColors.primary.withValues(alpha: 0.2),
                       blurRadius: 12,
                       offset: Offset(0, 4),
                     ),
@@ -103,7 +103,7 @@ class CustomNavbar extends StatelessWidget {
               .shimmer(
                 delay: 100.ms,
                 duration: 600.ms,
-                color: Colors.white.withOpacity(0.4),
+                color: Colors.white.withValues(alpha: 0.4),
               ),
         ),
         // Enhanced cart badge
@@ -150,13 +150,13 @@ class CustomNavbar extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.red.withOpacity(0.4),
+                color: Colors.red.withValues(alpha: .4),
                 blurRadius: 8,
                 offset: Offset(0, 3),
                 spreadRadius: 1,
               ),
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 4,
                 offset: Offset(0, 2),
               ),
@@ -174,7 +174,7 @@ class CustomNavbar extends StatelessWidget {
               fontWeight: FontWeight.w800,
               shadows: [
                 Shadow(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   offset: Offset(0, 1),
                   blurRadius: 2,
                 ),
@@ -193,7 +193,7 @@ class CustomNavbar extends StatelessWidget {
             .shimmer(
               delay: 500.ms,
               duration: 1000.ms,
-              color: Colors.white.withOpacity(0.6),
+              color: Colors.white.withValues(alpha: 0.6),
             ),
       );
     });
