@@ -119,7 +119,7 @@ class CarouselSliderScreen extends StatelessWidget {
   }
 
   Widget _buildCarouselItem(MyCarouselSliderController controller, int index) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       child: Stack(
         fit: StackFit.expand,

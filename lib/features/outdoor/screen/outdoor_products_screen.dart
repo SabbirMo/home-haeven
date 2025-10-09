@@ -5,6 +5,7 @@ import 'package:home_haven/features/home/presentation/controller/home_controller
 import 'package:home_haven/features/product_details/screen/product_details_screen.dart';
 import 'package:home_haven/features/cart/controller/cart_controller.dart';
 import 'package:home_haven/features/wishlist/controller/wishlist_controller.dart';
+import 'package:home_haven/core/util/text_utils.dart';
 
 class OutdoorProductsScreen extends StatelessWidget {
   const OutdoorProductsScreen({super.key});
@@ -282,7 +283,8 @@ class OutdoorProductsScreen extends StatelessWidget {
                   children: [
                     // Product Title
                     Text(
-                      item.title.replaceAll('"', ''),
+                      TextUtils.truncateToTwoWords(
+                          item.title.replaceAll('"', '')),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,

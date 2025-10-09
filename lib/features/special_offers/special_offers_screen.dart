@@ -5,6 +5,7 @@ import 'package:home_haven/features/home/presentation/controller/home_controller
 import 'package:home_haven/features/product_details/screen/product_details_screen.dart';
 import 'package:home_haven/features/cart/controller/cart_controller.dart';
 import 'package:home_haven/features/wishlist/controller/wishlist_controller.dart';
+import 'package:home_haven/core/util/text_utils.dart';
 
 class SpecialOffersScreen extends StatelessWidget {
   const SpecialOffersScreen({super.key});
@@ -258,7 +259,7 @@ class SpecialOffersScreen extends StatelessWidget {
                   children: [
                     // Product Title
                     Text(
-                      item.title,
+                      TextUtils.truncateToTwoWords(item.title),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,

@@ -8,6 +8,7 @@ import 'package:home_haven/features/onboarding/widget/custom_button.dart';
 import 'package:home_haven/features/cart/controller/cart_controller.dart';
 import 'package:home_haven/features/cart/my_cart_screen.dart';
 import 'package:home_haven/features/wishlist/controller/wishlist_controller.dart';
+import 'package:home_haven/core/util/text_utils.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final HomeModel product;
@@ -158,7 +159,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       children: [
                         // Product Title
                         Text(
-                          widget.product.title.toUpperCase(),
+                          TextUtils.truncateToTwoWords(
+                              widget.product.title.toUpperCase()),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,

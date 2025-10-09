@@ -6,6 +6,7 @@ import 'package:home_haven/features/product_details/screen/product_details_scree
 import 'package:home_haven/features/cart/controller/cart_controller.dart';
 import 'package:home_haven/features/onboarding/widget/custom_button.dart';
 import 'package:home_haven/features/bottom_navbar/controller/navigation_controller.dart';
+import 'package:home_haven/core/util/text_utils.dart';
 
 class WishlistScreen extends StatelessWidget {
   const WishlistScreen({super.key});
@@ -234,7 +235,8 @@ class WishlistScreen extends StatelessWidget {
                         onTap: () =>
                             Get.to(() => ProductDetailsScreen(product: item)),
                         child: Text(
-                          item.title.toUpperCase(),
+                          TextUtils.truncateToTwoWords(
+                              item.title.toUpperCase()),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,

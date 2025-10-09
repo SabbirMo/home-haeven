@@ -10,6 +10,7 @@ import 'package:home_haven/features/appliances/appliances_product_screen.dart';
 import 'package:home_haven/features/furniture/screen/furniture_product_screen.dart';
 import 'package:home_haven/features/outdoor/screen/outdoor_products_screen.dart';
 import 'package:home_haven/features/special_offers/special_offers_screen.dart';
+import 'package:home_haven/core/util/text_utils.dart';
 import '../controller/home_controller.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -268,11 +269,18 @@ class HomeScreen extends StatelessWidget {
                                                       ),
                                                       SizedBox(height: 3),
                                                       Text(
-                                                        (item.title).replaceAll(
-                                                            '"', ''),
+                                                        TextUtils
+                                                            .truncateToTwoWords(
+                                                                (item.title)
+                                                                    .replaceAll(
+                                                                        '"',
+                                                                        '')),
                                                         style: TextStyle(
                                                           fontSize: 16,
                                                         ),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
                                                       ),
                                                       // Price Section - Show offer price if available, otherwise regular price
                                                       if (item.offerPrice !=
