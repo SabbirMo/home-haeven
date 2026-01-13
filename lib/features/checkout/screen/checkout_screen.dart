@@ -37,7 +37,7 @@ class CheckoutScreen extends StatelessWidget {
               ),
               child: IconButton(
                 icon: Icon(Icons.arrow_back_ios_new, color: Colors.black87),
-                onPressed: () => Get.back(),
+                onPressed: () => Navigator.pop(context),
               ),
             ),
           ),
@@ -144,7 +144,7 @@ class CheckoutScreen extends StatelessWidget {
             ),
             child: IconButton(
               icon: Icon(Icons.arrow_back_ios_new, color: Colors.black87),
-              onPressed: () => Get.back(),
+              onPressed: () => Navigator.pop(context),
             ),
           ),
         ),

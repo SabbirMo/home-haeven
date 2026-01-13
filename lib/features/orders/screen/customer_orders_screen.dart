@@ -33,7 +33,7 @@ class CustomerOrdersScreen extends StatelessWidget {
           onPressed: () {
             // Navigate back to profile tab
             navController.changeTab(2); // Profile tab is index 2
-            Get.back();
+            Navigator.pop(context);
           },
         ),
         title: Text(

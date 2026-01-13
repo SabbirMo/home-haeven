@@ -23,7 +23,7 @@ class MyCartScreen extends StatelessWidget {
           onPressed: () {
             // Check if we can navigate back
             if (Navigator.canPop(context)) {
-              Get.back();
+              Navigator.pop(context);
             } else {
               // If we can't go back, switch to home tab
               try {
@@ -32,7 +32,7 @@ class MyCartScreen extends StatelessWidget {
                 navController.changeTab(0); // Switch to home tab
               } catch (e) {
                 // If navigation controller not found, try going back anyway
-                Get.back();
+                Navigator.pop(context);
               }
             }
           },

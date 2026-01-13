@@ -40,11 +40,13 @@ class ForgotPasswordScreen extends StatelessWidget {
                           text: "Reset Password",
                           onTap: () {
                             if (emailController.text.isEmpty) {
-                              Get.snackbar(
-                                "Error",
-                                "Please fill the filed",
-                                duration: Duration(seconds: 3),
-                              );
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                Get.snackbar(
+                                  "Error",
+                                  "Please fill the filed",
+                                  duration: Duration(seconds: 3),
+                                );
+                              });
                               return;
                             }
                             controller.resetPassword(

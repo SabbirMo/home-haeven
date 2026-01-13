@@ -90,13 +90,17 @@ class RegisterScreen extends StatelessWidget {
                                 emailController.text.isEmpty ||
                                 passwordController.text.isEmpty ||
                                 confirmPasswordController.text.isEmpty) {
-                              Get.snackbar("Error", "Please fill all field",
-                                  duration: Duration(seconds: 4));
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                Get.snackbar("Error", "Please fill all field",
+                                    duration: Duration(seconds: 4));
+                              });
                               return;
                             } else if (passwordController.text !=
                                 confirmPasswordController.text) {
-                              Get.snackbar("Error", "Password don't match",
-                                  duration: Duration(seconds: 4));
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                Get.snackbar("Error", "Password don't match",
+                                    duration: Duration(seconds: 4));
+                              });
                               return;
                             }
                             controller.registorUser(

@@ -121,8 +121,11 @@ class ProfileScreen extends StatelessWidget {
                   Icons.location_on_rounded,
                   'Addresses',
                   'Manage delivery addresses',
-                  () => Get.snackbar(
-                      'Coming Soon', 'Address management coming soon!'),
+                  () => ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Addresses management coming soon!'),
+                    ),
+                  ),
                 ),
                 _buildWishlistMenuItem(),
               ]),

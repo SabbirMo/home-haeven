@@ -43,9 +43,8 @@ class CartController extends GetxController {
       // Enhanced price parsing to handle different formats
       String cleanOfferPrice =
           (product.offerPrice ?? '0').trim().replaceAll(RegExp(r'[^0-9.]'), '');
-      String cleanRegularPrice = (product.regularPrice ?? '0')
-          .trim()
-          .replaceAll(RegExp(r'[^0-9.]'), '');
+      String cleanRegularPrice =
+          (product.regularPrice).trim().replaceAll(RegExp(r'[^0-9.]'), '');
 
       double parsedPrice = double.tryParse(cleanOfferPrice) ?? 0.0;
       double parsedOriginalPrice = double.tryParse(cleanRegularPrice) ?? 0.0;
@@ -71,6 +70,7 @@ class CartController extends GetxController {
 
   // Remove item from cart
   void removeFromCart(String itemId, String color) {
+    // ignore: unused_local_variable
     String itemName = '';
     int index = cartItems
         .indexWhere((item) => item.id == itemId && item.color == color);

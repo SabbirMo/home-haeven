@@ -24,7 +24,9 @@ class WishlistScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new, color: Colors.white),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
         title: Text(
           'My Wishlist',

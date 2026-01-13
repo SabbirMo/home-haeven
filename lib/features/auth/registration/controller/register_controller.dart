@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class RegisterController extends GetxController {
@@ -47,7 +48,10 @@ class RegisterController extends GetxController {
 
       if (user != null && !credential.user!.emailVerified) {
         await credential.user!.sendEmailVerification();
-        Get.snackbar('Success', 'Verification Email sent to $email');
+        // Use WidgetsBinding to show snackbar after frame is built
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Get.snackbar('Success', 'Verification Email sent to $email');
+        });
       }
 
       await _firestore.collection('auth').doc(user!.uid).set({
@@ -58,7 +62,9 @@ class RegisterController extends GetxController {
         'createAt': DateTime.now(),
       });
     } on FirebaseAuthException catch (e) {
-      Get.snackbar('Error', e.message ?? 'Something went wrong');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.snackbar('Error', e.message ?? 'Something went wrong');
+      });
     } finally {
       isLoading = false;
       update();

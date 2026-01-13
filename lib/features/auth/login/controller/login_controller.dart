@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:home_haven/core/router/app_routers.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -47,12 +48,16 @@ class LoginController extends GetxController {
               String role = userData['role'] ?? 'customer';
 
               if (role == "admin" && email.trim().toLowerCase() != adminEmail) {
-                Get.snackbar("Error", "Only $adminEmail can login as Admin!");
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  Get.snackbar("Error", "Only $adminEmail can login as Admin!");
+                });
                 await _auth.signOut();
                 return;
               }
 
-              Get.snackbar('Success', 'Login Successfully as $role');
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Get.snackbar('Success', 'Login Successfully as $role');
+              });
 
               if (role == "admin") {
                 Get.offAllNamed(RouterConstant.adminDashboard);
@@ -60,15 +65,21 @@ class LoginController extends GetxController {
                 Get.offAllNamed(RouterConstant.mainScreen);
               }
             } else {
-              Get.snackbar('Success', 'Login Successfully');
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Get.snackbar('Success', 'Login Successfully');
+              });
               Get.offAllNamed(RouterConstant.mainScreen);
             }
           } catch (firestoreError) {
-            Get.snackbar('Success', 'Login Successfully');
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Get.snackbar('Success', 'Login Successfully');
+            });
             Get.offAllNamed(RouterConstant.mainScreen);
           }
         } else {
-          Get.snackbar('Error', 'Please verify your email');
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Get.snackbar('Error', 'Please verify your email');
+          });
           await _auth.signOut();
         }
       }
@@ -87,9 +98,13 @@ class LoginController extends GetxController {
         default:
           errorMessage = e.message ?? 'Something went wrong';
       }
-      Get.snackbar('Error', errorMessage);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.snackbar('Error', errorMessage);
+      });
     } catch (e) {
-      Get.snackbar('Error', 'An unexpected error occurred');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.snackbar('Error', 'An unexpected error occurred');
+      });
     } finally {
       isLoading = false;
       update();
@@ -147,12 +162,14 @@ class LoginController extends GetxController {
 
         String role = doc.exists ? doc['role'] ?? 'customer' : 'customer';
 
-        Get.snackbar(
-          'Success',
-          'Google login successful! Welcome ${user.displayName ?? 'User'}',
-          snackPosition: SnackPosition.TOP,
-          duration: Duration(seconds: 3),
-        );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Get.snackbar(
+            'Success',
+            'Google login successful! Welcome ${user.displayName ?? 'User'}',
+            snackPosition: SnackPosition.TOP,
+            duration: Duration(seconds: 3),
+          );
+        });
 
         if (role == 'admin') {
           Get.offAllNamed(RouterConstant.adminDashboard);
@@ -161,12 +178,14 @@ class LoginController extends GetxController {
         }
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Google sign-in failed: ${e.toString()}',
-        snackPosition: SnackPosition.TOP,
-        duration: Duration(seconds: 4),
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.snackbar(
+          'Error',
+          'Google sign-in failed: ${e.toString()}',
+          snackPosition: SnackPosition.TOP,
+          duration: Duration(seconds: 4),
+        );
+      });
     }
   }
 }
