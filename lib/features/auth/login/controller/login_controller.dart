@@ -1,8 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:home_haven/core/router/app_routers.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:home_haven/core/util/export.dart';
 
@@ -48,16 +45,21 @@ class LoginController extends GetxController {
               String role = userData['role'] ?? 'customer';
 
               if (role == "admin" && email.trim().toLowerCase() != adminEmail) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  Get.snackbar("Error", "Only $adminEmail can login as Admin!");
-                });
+                ScaffoldMessenger.of(Get.context!).showSnackBar(
+                  SnackBar(
+                    content: Text("Only $adminEmail can login as Admin!"),
+                  ),
+                );
+
                 await _auth.signOut();
                 return;
               }
 
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                Get.snackbar('Success', 'Login Successfully as $role');
-              });
+              ScaffoldMessenger.of(Get.context!).showSnackBar(
+                SnackBar(
+                  content: Text('Login Successfully as $role'),
+                ),
+              );
 
               if (role == "admin") {
                 Get.offAllNamed(RouterConstant.adminDashboard);

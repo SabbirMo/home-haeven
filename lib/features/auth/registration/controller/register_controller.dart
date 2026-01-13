@@ -49,9 +49,12 @@ class RegisterController extends GetxController {
       if (user != null && !credential.user!.emailVerified) {
         await credential.user!.sendEmailVerification();
         // Use WidgetsBinding to show snackbar after frame is built
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Get.snackbar('Success', 'Verification Email sent to $email');
-        });
+
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(
+            content: Text('Verification Email sent to $email'),
+          ),
+        );
       }
 
       await _firestore.collection('auth').doc(user!.uid).set({

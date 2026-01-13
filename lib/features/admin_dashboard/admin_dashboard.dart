@@ -4,6 +4,7 @@ import 'package:home_haven/core/assets/app_colors.dart';
 import 'package:home_haven/features/home/model/home_model.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'admin_product_controller.dart';
 import 'package:home_haven/features/orders/screen/orders_management_screen.dart';
 import 'package:home_haven/features/orders/controller/orders_controller.dart';
@@ -892,12 +893,12 @@ class AdminDashboard extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Get.back(),
+            onPressed: () => Navigator.of(Get.context!).pop(),
             child: Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () async {
-              Get.back(); // Close dialog
+              Navigator.of(Get.context!).pop(); // Close the dialog
               await _performLogout();
             },
             style: ElevatedButton.styleFrom(
@@ -935,26 +936,44 @@ class AdminDashboard extends StatelessWidget {
         barrierDismissible: false,
       );
 
-      // Sign out from Firebase
+      // Sign out from Google Sign In (if user logged in with Google)
+      try {
+        final GoogleSignIn googleSignIn = GoogleSignIn();
+        if (await googleSignIn.isSignedIn()) {
+          await googleSignIn.signOut();
+        }
+      } catch (googleError) {
+        print('Google sign out error: $googleError');
+      }
+
+      // Sign out from Firebase Auth
       await FirebaseAuth.instance.signOut();
 
+      // Small delay to ensure sign out completes
+      await Future.delayed(Duration(milliseconds: 300));
+
       // Close loading dialog
       Get.back();
 
-      // Navigate to login screen
-      Get.offAllNamed('/login');
+      // Navigate to login screen and clear all previous routes
+      Get.offAllNamed(RouterConstant.loginScreen);
 
-      // Show success message
-      Get.snackbar(
-        'Success',
-        'You have been logged out successfully',
-        backgroundColor: Colors.green[100],
-        colorText: Colors.green[800],
-        duration: Duration(seconds: 2),
-      );
+      // Show success message after navigation
+      Future.delayed(Duration(milliseconds: 500), () {
+        Get.snackbar(
+          'Success',
+          'You have been logged out successfully',
+          backgroundColor: Colors.green[100],
+          colorText: Colors.green[800],
+          duration: Duration(seconds: 2),
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      });
     } catch (e) {
-      // Close loading dialog
-      Get.back();
+      // Close loading dialog if still open
+      try {
+        Get.back();
+      } catch (_) {}
 
       // Show error message
       Get.snackbar(
@@ -962,6 +981,7 @@ class AdminDashboard extends StatelessWidget {
         'Failed to log out: $e',
         backgroundColor: Colors.red[100],
         colorText: Colors.red[800],
+        snackPosition: SnackPosition.BOTTOM,
       );
     }
   }
